@@ -9,4 +9,5 @@ urlpatterns = [
     path("api/events/<int:event_id>/resolve/", ResolveEventView.as_view(), name="resolve-event"),
     path("api/predictions/", include("predictions.urls")),
     path("api/payments/", include("payments.urls")),
+    path("api/ai-hints/", include("ai_hints.urls")),
 ]

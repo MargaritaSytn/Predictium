@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "events",
     "predictions",
     "payments",
+    "ai_hints",
 ]
 
 MIDDLEWARE = [
@@ -167,6 +168,7 @@ REST_FRAMEWORK = {
         "login": "5/min",
         "register": "3/min",
         "prediction": "30/min",
+        "hint": "10/min",
         "withdraw": "3/min",
     },
 }
@@ -216,3 +218,8 @@ TOKEN_WITHDRAWAL_FEE = 0.03
 MIN_WITHDRAWAL_TOKENS = 100
 PREMIUM_PRICE_USD = 9.99
 PREMIUM_DURATION_DAYS = 30
+
+# Anthropic AI
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+AI_HINT_FREE_LIMIT = int(os.getenv("AI_HINT_FREE_LIMIT", "1"))
+AI_HINT_PREMIUM_LIMIT = int(os.getenv("AI_HINT_PREMIUM_LIMIT", "5"))
