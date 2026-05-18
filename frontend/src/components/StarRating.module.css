@@ -1,0 +1,29 @@
+.stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.star {
+  cursor: pointer;
+  fill: var(--border);
+  stroke: var(--border-light);
+  stroke-width: 1;
+  transition: fill var(--transition-fast), transform var(--transition-fast);
+}
+
+.star:hover {
+  transform: scale(1.15);
+}
+
+.star.filled {
+  fill: var(--warning);
+  stroke: var(--warning);
+}
+
+.star.readonly {
+  cursor: default;
+}
+
+.star.readonly:hover {
+  transform: none;
+}
