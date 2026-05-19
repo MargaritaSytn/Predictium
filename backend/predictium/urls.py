@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+
 from predictions.views import ResolveEventView
 
 urlpatterns = [
@@ -10,4 +11,5 @@ urlpatterns = [
     path("api/predictions/", include("predictions.urls")),
     path("api/payments/", include("payments.urls")),
     path("api/ai-hints/", include("ai_hints.urls")),
+    path("api/notifications/", include("notifications.urls")),
 ]
