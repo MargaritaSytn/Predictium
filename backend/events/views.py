@@ -3,10 +3,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django.db.models import Count, Sum
-from core.models import Event, Review
+from core.models import Event, EventOutcome, Review
 from .serializers import (
     EventListSerializer, EventDetailSerializer,
     ReviewSerializer, CreateReviewSerializer,
+    CreateEventSerializer, UpdateEventSerializer, AddOutcomeSerializer,
 )
 
 
@@ -136,3 +137,88 @@ class RejectReviewView(APIView):
             )
         review.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ── Admin Event Management ────────────────────────────────────────────────────
+
+class AdminEventListCreateView(generics.ListCreateAPIView):
+    """Admin: list all events (including drafts) + create new event with outcomes."""
+    permission_classes = (IsAdminUser,)
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return CreateEventSerializer
+        return EventDetailSerializer
+
+    def get_queryset(self):
+        return Event.objects.annotate(
+            prediction_count=Count("predictions"),
+            review_count=Count("reviews"),
+            total_tokens_wagered=Sum("predictions__amount_tokens"),
+        ).order_by("-created_at")
+
+    def create(self, request, *args, **kwargs):
+        serializer = CreateEventSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        event = serializer.save()
+        annotated = Event.objects.annotate(
+            prediction_count=Count("predictions"),
+            review_count=Count("reviews"),
+            total_tokens_wagered=Sum("predictions__amount_tokens"),
+        ).get(pk=event.pk)
+        return Response(
+            EventDetailSerializer(annotated).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class AdminEventDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Admin: retrieve, update or delete a single event."""
+    permission_classes = (IsAdminUser,)
+
+    def get_serializer_class(self):
+        if self.request.method in ("PUT", "PATCH"):
+            return UpdateEventSerializer
+        return EventDetailSerializer
+
+    def get_queryset(self):
+        return Event.objects.annotate(
+            prediction_count=Count("predictions"),
+            review_count=Count("reviews"),
+            total_tokens_wagered=Sum("predictions__amount_tokens"),
+        )
+
+
+class AdminAddOutcomeView(APIView):
+    """Admin: add an outcome to an existing event."""
+    permission_classes = (IsAdminUser,)
+
+    def post(self, request, event_id):
+        event = Event.objects.filter(pk=event_id).first()
+        if not event:
+            return Response({"detail": "Подію не знайдено."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = AddOutcomeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        outcome = serializer.save(event=event)
+        return Response(
+            {"id": outcome.id, "label": outcome.label, "total_tokens_wagered": 0, "current_coefficient": 0.0},
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class AdminDeleteOutcomeView(APIView):
+    """Admin: remove an outcome from an event."""
+    permission_classes = (IsAdminUser,)
+
+    def delete(self, request, outcome_id):
+        outcome = EventOutcome.objects.filter(pk=outcome_id).first()
+        if not outcome:
+            return Response({"detail": "Варіант відповіді не знайдено."}, status=status.HTTP_404_NOT_FOUND)
+        if outcome.total_tokens_wagered > 0:
+            return Response(
+                {"detail": "Не можна видалити варіант із зробленими ставками."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        outcome.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+

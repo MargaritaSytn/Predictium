@@ -2,7 +2,7 @@ import bleach
 from rest_framework import serializers
 from core.models import Event, EventOutcome, Review
 
-_ALLOWED_TAGS: list = []
+_ALLOWED_TAGS: list = []  # strip all HTML tags from user text
 _ALLOWED_ATTRS: dict = {}
 
 
@@ -12,6 +12,38 @@ class EventOutcomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventOutcome
         fields = ("id", "label", "total_tokens_wagered", "current_coefficient")
+
+
+class AddOutcomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventOutcome
+        fields = ("label",)
+
+
+class CreateEventSerializer(serializers.ModelSerializer):
+    outcomes = serializers.ListField(
+        child=serializers.CharField(max_length=255),
+        min_length=2,
+        write_only=True,
+    )
+
+    class Meta:
+        model = Event
+        fields = ("title", "description", "category", "image_url", "deadline", "status", "outcomes")
+
+    def create(self, validated_data):
+        outcome_labels = validated_data.pop("outcomes")
+        event = Event.objects.create(**validated_data)
+        for label in outcome_labels:
+            EventOutcome.objects.create(event=event, label=label)
+        return event
+
+
+class UpdateEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ("title", "description", "category", "image_url", "deadline", "status")
+        extra_kwargs = {field: {"required": False} for field in fields}
 
 
 class EventListSerializer(serializers.ModelSerializer):

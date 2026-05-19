@@ -5,12 +5,14 @@ from rest_framework.views import APIView
 from core.throttles import LoginRateThrottle, RegisterRateThrottle
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.db.models import Count, Sum, Avg
 from rest_framework_simplejwt.tokens import RefreshToken
-from core.models import DAILY_BONUS, Transaction, Follow, Report
+from core.models import DAILY_BONUS, Transaction, Follow, Report, Event, Prediction, Wallet
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserProfileSerializer,
     TopPredictorSerializer, PublicUserSerializer,
     CreateReportSerializer, ReportSerializer,
+    AdminUserSerializer,
 )
 
 User = get_user_model()
@@ -173,3 +175,66 @@ class ReportListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Report.objects.all().order_by("-created_at")
+
+
+# ── Admin Analytics ───────────────────────────────────────────────────────────
+
+class PlatformStatsView(APIView):
+    """Admin: platform-wide statistics."""
+    permission_classes = (IsAdminUser,)
+
+    def get(self, request):
+        total_users = User.objects.count()
+        premium_users = User.objects.filter(premium_status=True).count()
+        total_events = Event.objects.count()
+        open_events = Event.objects.filter(status="open").count()
+        completed_events = Event.objects.filter(status="completed").count()
+        total_predictions = Prediction.objects.count()
+        total_tokens_wagered = Prediction.objects.aggregate(
+            total=Sum("amount_tokens")
+        )["total"] or 0
+        total_revenue_usd = Transaction.objects.filter(
+            type="purchase", status="confirmed"
+        ).aggregate(total=Sum("currency_equivalent"))["total"] or 0.0
+        total_withdrawals_usd = Transaction.objects.filter(
+            type="withdrawal", status="confirmed"
+        ).aggregate(total=Sum("currency_equivalent"))["total"] or 0.0
+
+        return Response({
+            "users": {
+                "total": total_users,
+                "premium": premium_users,
+            },
+            "events": {
+                "total": total_events,
+                "open": open_events,
+                "completed": completed_events,
+            },
+            "predictions": {
+                "total": total_predictions,
+                "total_tokens_wagered": total_tokens_wagered,
+            },
+            "revenue": {
+                "total_purchases_usd": round(float(total_revenue_usd), 2),
+                "total_withdrawals_usd": round(float(total_withdrawals_usd), 2),
+                "net_usd": round(float(total_revenue_usd) - float(total_withdrawals_usd), 2),
+            },
+        })
+
+
+class AdminUserListView(generics.ListAPIView):
+    """Admin: paginated user list with key stats."""
+    permission_classes = (IsAdminUser,)
+    serializer_class = AdminUserSerializer
+
+    def get_queryset(self):
+        return User.objects.select_related("profile", "wallet").order_by("-date_joined")
+
+
+class AdminUserDetailView(generics.RetrieveAPIView):
+    """Admin: detailed analytics for a single user."""
+    permission_classes = (IsAdminUser,)
+    serializer_class = AdminUserSerializer
+    queryset = User.objects.select_related("profile", "wallet")
+    lookup_field = "pk"
+
