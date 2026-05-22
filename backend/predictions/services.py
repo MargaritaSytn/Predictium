@@ -1,49 +1,11 @@
 from django.db import transaction
 from django.utils import timezone
 import logging
-import urllib.request
-import json
 
-from core.models import DeviceToken, Event, EventOutcome, Notification, Prediction, Transaction
+from core.models import Event, EventOutcome, Notification, Prediction, Transaction
+from notifications.push import send_push_notifications
 
 logger = logging.getLogger(__name__)
-
-
-def _send_expo_push_notifications(user_notification_pairs: list[tuple]) -> None:
-    """Send Expo push notifications to mobile devices.
-
-    Accepts a list of (user, title, body) tuples. Groups device tokens and
-    calls the Expo Push API. Failures are logged but do not raise exceptions.
-    """
-    if not user_notification_pairs:
-        return
-
-    user_ids = [user.id for user, _, _ in user_notification_pairs]
-    tokens_by_user: dict = {}
-    for dt in DeviceToken.objects.filter(user_id__in=user_ids).select_related("user"):
-        tokens_by_user.setdefault(dt.user_id, []).append(dt.token)
-
-    messages = []
-    for user, title, body in user_notification_pairs:
-        for token in tokens_by_user.get(user.id, []):
-            messages.append({"to": token, "title": title, "body": body, "sound": "default"})
-
-    if not messages:
-        return
-
-    try:
-        payload = json.dumps(messages).encode("utf-8")
-        req = urllib.request.Request(
-            "https://exp.host/--/api/v2/push/send",
-            data=payload,
-            headers={"Content-Type": "application/json", "Accept": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            if resp.status >= 400:
-                logger.warning("Expo push API returned status %s", resp.status)
-    except Exception as exc:
-        logger.warning("Failed to send Expo push notifications: %s", exc)
 
 
 class PredictionError(Exception):
@@ -170,7 +132,7 @@ def resolve_event(event_id, winning_outcome_id):
         if notifications:
             Notification.objects.bulk_create(notifications)
 
-        # Send Expo push notifications to mobile devices
+        # Send push notifications to mobile devices (Expo + FCM)
         push_pairs = [
             (
                 pred.user,
@@ -181,4 +143,4 @@ def resolve_event(event_id, winning_outcome_id):
             )
             for pred in predictions
         ]
-        _send_expo_push_notifications(push_pairs)
+        send_push_notifications(push_pairs)

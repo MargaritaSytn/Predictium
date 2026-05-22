@@ -5,6 +5,7 @@ from .views import (
     PublicProfileView, FollowUserView, FollowersListView, FollowingListView,
     CreateReportView, ReportListView,
     PlatformStatsView, AdminUserListView, AdminUserDetailView,
+    GoogleAuthView, FacebookAuthView,
 )
 
 urlpatterns = [
@@ -22,4 +23,6 @@ urlpatterns = [
     path("admin/stats/", PlatformStatsView.as_view(), name="platform-stats"),
     path("admin/users/", AdminUserListView.as_view(), name="admin-user-list"),
     path("admin/users/<int:pk>/", AdminUserDetailView.as_view(), name="admin-user-detail"),
+    path("google/", GoogleAuthView.as_view(), name="google-auth"),
+    path("facebook/", FacebookAuthView.as_view(), name="facebook-auth"),
 ]

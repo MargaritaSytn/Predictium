@@ -273,10 +273,13 @@ class Report(models.Model):
 
 
 class DeviceToken(models.Model):
-    """Stores Expo push tokens for mobile push notification delivery."""
+    """Stores push tokens (Expo or FCM) for mobile push notification delivery."""
+
+    TOKEN_TYPE_CHOICES = [("expo", "Expo Push Token"), ("fcm", "FCM Token")]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="device_tokens")
     token = models.CharField(max_length=200, unique=True)
+    token_type = models.CharField(max_length=10, choices=TOKEN_TYPE_CHOICES, default="expo")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -284,7 +287,7 @@ class DeviceToken(models.Model):
         db_table = "device_tokens"
 
     def __str__(self):
-        return f"DeviceToken({self.user.username})"
+        return f"DeviceToken({self.user.username}, {self.token_type})"
 
 
 STARTING_BALANCE = 100

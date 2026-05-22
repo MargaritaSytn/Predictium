@@ -1,12 +1,17 @@
-from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from rest_framework.views import APIView
-from core.throttles import LoginRateThrottle, RegisterRateThrottle
+import logging
+import urllib.request
+import json
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 from django.db.models import Count, Sum, Avg
+from django.utils import timezone
+from rest_framework import generics, status
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from core.throttles import LoginRateThrottle, RegisterRateThrottle
 from core.models import DAILY_BONUS, Transaction, Follow, Report, Event, Prediction, Wallet
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserProfileSerializer,
@@ -14,6 +19,8 @@ from .serializers import (
     CreateReportSerializer, ReportSerializer,
     AdminUserSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -237,4 +244,118 @@ class AdminUserDetailView(generics.RetrieveAPIView):
     serializer_class = AdminUserSerializer
     queryset = User.objects.select_related("profile", "wallet")
     lookup_field = "pk"
+
+
+# ── Social Auth (Google / Facebook) ──────────────────────────────────────────
+
+def _social_auth_response(user):
+    """Generate JWT tokens and profile for a social-authenticated user."""
+    bonus_granted = _grant_daily_bonus(user)
+    user.refresh_from_db()
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        "user": UserProfileSerializer(user).data,
+        "access": str(refresh.access_token),
+        "refresh": str(refresh),
+        "daily_bonus_granted": bonus_granted,
+    })
+
+
+class GoogleAuthView(APIView):
+    """Verify Google ID token and return JWT credentials."""
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        id_token = request.data.get("id_token", "").strip()
+        if not id_token:
+            return Response(
+                {"detail": "id_token is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            from google.oauth2 import id_token as google_id_token
+            from google.auth.transport import requests as google_requests
+
+            client_id = getattr(settings, "GOOGLE_ANDROID_CLIENT_ID", None) or getattr(settings, "GOOGLE_CLIENT_ID", "")
+            idinfo = google_id_token.verify_oauth2_token(
+                id_token, google_requests.Request(), client_id
+            )
+        except Exception as exc:
+            logger.warning("Google token verification failed: %s", exc)
+            return Response(
+                {"detail": "Invalid Google token."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        email = idinfo.get("email")
+        if not email:
+            return Response(
+                {"detail": "Google account has no email."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            username = idinfo.get("name", email.split("@")[0])
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=None,
+            )
+
+        return _social_auth_response(user)
+
+
+class FacebookAuthView(APIView):
+    """Verify Facebook access token and return JWT credentials."""
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        access_token = request.data.get("access_token", "").strip()
+        if not access_token:
+            return Response(
+                {"detail": "access_token is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            url = f"https://graph.facebook.com/me?fields=id,name,email&access_token={access_token}"
+            req = urllib.request.Request(url, method="GET")
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                fb_data = json.loads(resp.read().decode("utf-8"))
+        except Exception as exc:
+            logger.warning("Facebook token verification failed: %s", exc)
+            return Response(
+                {"detail": "Invalid Facebook token."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        email = fb_data.get("email")
+        if not email:
+            return Response(
+                {"detail": "Facebook account has no email. Please grant email permission."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            username = fb_data.get("name", email.split("@")[0])
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=None,
+            )
+
+        return _social_auth_response(user)
 
