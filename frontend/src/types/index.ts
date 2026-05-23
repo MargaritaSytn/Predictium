@@ -50,3 +50,9 @@ export interface PaginatedResponse<T> {
   previous: string | null;
   results: T[];
 }
+
+export interface TopPredictor {
+  id: number;
+  username: string;
+  success_rate: number;
+}
