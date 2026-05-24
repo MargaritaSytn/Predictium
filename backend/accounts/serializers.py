@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from core.models import Report
 
 User = get_user_model()
 
@@ -52,3 +53,76 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "total_predictions", "wallet_balance",
         )
         read_only_fields = fields
+
+
+class PublicUserSerializer(serializers.ModelSerializer):
+    success_rate = serializers.FloatField(source="profile.success_rate", read_only=True)
+    total_predictions = serializers.IntegerField(source="profile.total_predictions", read_only=True)
+    won_predictions = serializers.IntegerField(source="profile.won_predictions", read_only=True)
+    bio = serializers.CharField(source="profile.bio", read_only=True)
+    followers_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            "id", "username", "registration_date", "premium_status",
+            "bio", "success_rate", "total_predictions", "won_predictions",
+            "followers_count", "following_count", "is_following",
+        )
+        read_only_fields = fields
+
+    def get_followers_count(self, obj):
+        return obj.followers.count()
+
+    def get_following_count(self, obj):
+        return obj.following.count()
+
+    def get_is_following(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return obj.followers.filter(follower=request.user).exists()
+        return False
+
+
+class CreateReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = ("reported_user", "reported_review", "reason", "description")
+
+    def validate(self, attrs):
+        if not attrs.get("reported_user") and not attrs.get("reported_review"):
+            raise serializers.ValidationError("Вкажіть користувача або відгук для скарги.")
+        return attrs
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    reporter_username = serializers.CharField(source="reporter.username", read_only=True)
+    reported_username = serializers.CharField(source="reported_user.username", read_only=True, default=None)
+
+    class Meta:
+        model = Report
+        fields = (
+            "id", "reporter_username", "reported_user", "reported_username",
+            "reported_review", "reason", "description", "status", "created_at",
+        )
+        read_only_fields = ("id", "reporter_username", "reported_username", "status", "created_at")
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    success_rate = serializers.FloatField(source="profile.success_rate", read_only=True)
+    total_predictions = serializers.IntegerField(source="profile.total_predictions", read_only=True)
+    won_predictions = serializers.IntegerField(source="profile.won_predictions", read_only=True)
+    wallet_balance = serializers.IntegerField(source="wallet.current_balance", read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            "id", "username", "email", "is_active", "is_staff",
+            "premium_status", "registration_date", "last_login_date",
+            "consecutive_login_days", "wallet_balance",
+            "success_rate", "total_predictions", "won_predictions",
+        )
+        read_only_fields = fields
+

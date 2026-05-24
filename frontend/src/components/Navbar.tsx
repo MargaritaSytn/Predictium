@@ -22,11 +22,31 @@ export default function Navbar() {
         >
           Головна
         </NavLink>
+        {user && (
+          <>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`
+              }
+            >
+              Профіль
+            </NavLink>
+            <NavLink
+              to="/finance"
+              className={({ isActive }) =>
+                `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`
+              }
+            >
+              Фінанси
+            </NavLink>
+          </>
+        )}
       </div>
 
       <div className={styles.rightSection}>
         {user ? (
-          <span className={styles.balanceBadge}>
+          <Link to="/finance" className={styles.balanceBadge}>
             <span className={styles.balanceIcon}>🪙</span>
             <div className={styles.balanceInfo}>
               <span className={styles.balanceLabel}>Баланс</span>
@@ -34,7 +54,7 @@ export default function Navbar() {
                 {user.wallet_balance.toLocaleString()} токенів
               </span>
             </div>
-          </span>
+          </Link>
         ) : (
           <div className={styles.authLinks}>
             <Link to="/login" className={styles.loginLink}>

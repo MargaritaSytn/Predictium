@@ -1,10 +1,13 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django.db.models import Count, Sum
-from core.models import Event
-from .serializers import EventListSerializer, EventDetailSerializer
+from core.models import Event, Review
+from .serializers import (
+    EventListSerializer, EventDetailSerializer,
+    ReviewSerializer, CreateReviewSerializer,
+)
 
 
 class EventListView(generics.ListAPIView):
@@ -61,3 +64,75 @@ class TopEventsView(APIView):
             "most_discussed": EventListSerializer(most_discussed, many=True).data,
             "most_predicted": EventListSerializer(most_predicted, many=True).data,
         })
+
+
+class EventReviewListView(generics.ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        return Review.objects.filter(
+            event_id=self.kwargs["event_id"],
+            is_approved=True,
+        ).order_by("-created_at")
+
+
+class CreateReviewView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, event_id):
+        event = Event.objects.filter(pk=event_id).first()
+        if not event:
+            return Response(
+                {"detail": "Подію не знайдено."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if Review.objects.filter(user=request.user, event=event).exists():
+            return Response(
+                {"detail": "Ви вже залишили відгук для цієї події."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = CreateReviewSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        review = serializer.save(user=request.user, event=event)
+        return Response(
+            ReviewSerializer(review).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class PendingReviewsView(generics.ListAPIView):
+    permission_classes = (IsAdminUser,)
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        return Review.objects.filter(is_approved=False).order_by("-created_at")
+
+
+class ApproveReviewView(APIView):
+    permission_classes = (IsAdminUser,)
+
+    def post(self, request, review_id):
+        review = Review.objects.filter(pk=review_id).first()
+        if not review:
+            return Response(
+                {"detail": "Відгук не знайдено."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        review.is_approved = True
+        review.save(update_fields=["is_approved"])
+        return Response(ReviewSerializer(review).data)
+
+
+class RejectReviewView(APIView):
+    permission_classes = (IsAdminUser,)
+
+    def post(self, request, review_id):
+        review = Review.objects.filter(pk=review_id).first()
+        if not review:
+            return Response(
+                {"detail": "Відгук не знайдено."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        review.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

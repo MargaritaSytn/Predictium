@@ -1,15 +1,16 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 from core.throttles import LoginRateThrottle, RegisterRateThrottle
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
-from core.models import DAILY_BONUS, Transaction
+from core.models import DAILY_BONUS, Transaction, Follow, Report
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserProfileSerializer,
-    TopPredictorSerializer,
+    TopPredictorSerializer, PublicUserSerializer,
+    CreateReportSerializer, ReportSerializer,
 )
 
 User = get_user_model()
@@ -106,3 +107,69 @@ class TopPredictorsView(generics.ListAPIView):
             .filter(profile__total_predictions__gte=5)
             .order_by("-profile__success_rate")[:5]
         )
+
+
+class PublicProfileView(generics.RetrieveAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = PublicUserSerializer
+    queryset = User.objects.select_related("profile")
+    lookup_field = "pk"
+
+
+class FollowUserView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, pk):
+        target = User.objects.filter(pk=pk).first()
+        if not target:
+            return Response({"detail": "Користувача не знайдено."}, status=status.HTTP_404_NOT_FOUND)
+        if target == request.user:
+            return Response({"detail": "Неможливо підписатися на себе."}, status=status.HTTP_400_BAD_REQUEST)
+        _, created = Follow.objects.get_or_create(follower=request.user, following=target)
+        if not created:
+            return Response({"detail": "Ви вже підписані на цього користувача."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Підписано."}, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, pk):
+        deleted, _ = Follow.objects.filter(follower=request.user, following_id=pk).delete()
+        if not deleted:
+            return Response({"detail": "Ви не підписані на цього користувача."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FollowersListView(generics.ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = PublicUserSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(
+            following__following_id=self.kwargs["pk"]
+        ).select_related("profile")
+
+
+class FollowingListView(generics.ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = PublicUserSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(
+            followers__follower_id=self.kwargs["pk"]
+        ).select_related("profile")
+
+
+class CreateReportView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = CreateReportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        report = serializer.save(reporter=request.user)
+        return Response(ReportSerializer(report).data, status=status.HTTP_201_CREATED)
+
+
+class ReportListView(generics.ListAPIView):
+    permission_classes = (IsAdminUser,)
+    serializer_class = ReportSerializer
+
+    def get_queryset(self):
+        return Report.objects.all().order_by("-created_at")
