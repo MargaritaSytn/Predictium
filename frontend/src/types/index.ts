@@ -37,38 +37,10 @@ export interface Event {
   total_tokens_wagered?: number;
 }
 
-export interface AuthResponse {
-  user: User;
-  access: string;
-  refresh: string;
-  daily_bonus_granted?: boolean;
-}
-
-export interface PaginatedResponse<T> {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-}
-
 export interface TopPredictor {
   id: number;
   username: string;
   success_rate: number;
-}
-
-export interface Prediction {
-  id: number;
-  event: number;
-  event_title: string;
-  selected_outcome: number;
-  outcome_label: string;
-  amount_tokens: number;
-  locked_coefficient: number;
-  prediction_status: string;
-  payout_amount: number;
-  probability_at_creation: number;
-  created_at: string;
 }
 
 export interface Transaction {
@@ -117,6 +89,34 @@ export interface Report {
   created_at: string;
 }
 
+export interface Prediction {
+  id: number;
+  event: number;
+  event_title: string;
+  selected_outcome: number;
+  outcome_label: string;
+  amount_tokens: number;
+  locked_coefficient: number;
+  prediction_status: string;
+  payout_amount: number;
+  probability_at_creation: number;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  access: string;
+  refresh: string;
+  daily_bonus_granted?: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
 export interface HintResponse {
   hint_text: string;
   hints_used_today: number;
@@ -128,3 +128,50 @@ export interface HintStatus {
   hints_remaining: number;
   daily_limit: number;
 }
+
+export interface Notification {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  send_time: string;
+  is_read: boolean;
+}
+
+export interface UnreadCount {
+  unread_count: number;
+}
+
+export interface AdminUser {
+  id: number;
+  username: string;
+  email: string;
+  is_active: boolean;
+  is_staff: boolean;
+  premium_status: boolean;
+  registration_date: string;
+  last_login_date: string | null;
+  consecutive_login_days: number;
+  wallet_balance: number;
+  success_rate: number;
+  total_predictions: number;
+  won_predictions: number;
+}
+
+export interface PlatformStats {
+  users: { total: number; premium: number };
+  events: { total: number; open: number; completed: number };
+  predictions: { total: number; total_tokens_wagered: number };
+  revenue: { total_purchases_usd: number; total_withdrawals_usd: number; net_usd: number };
+}
+
+export interface CreateEventPayload {
+  title: string;
+  description: string;
+  category: string;
+  image_url?: string;
+  deadline: string;
+  status: string;
+  outcomes: string[];
+}
+

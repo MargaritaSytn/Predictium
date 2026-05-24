@@ -7,12 +7,15 @@ import RegisterPage from "./pages/RegisterPage";
 import EventListPage from "./pages/EventListPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import ProfilePage from "./pages/ProfilePage";
-import BuyTokensPage from "./pages/BuyTokensPage";
-import PremiumPage from "./pages/PremiumPage";
 import FinancePage from "./pages/FinancePage";
+import BuyTokensPage from "./pages/BuyTokensPage";
 import WithdrawPage from "./pages/WithdrawPage";
+import PremiumPage from "./pages/PremiumPage";
 import ModerationPage from "./pages/ModerationPage";
 import UserProfilePage from "./pages/UserProfilePage";
+import NotificationsPage from "./pages/NotificationsPage";
+import AdminPage from "./pages/AdminPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 export default function App() {
   return (
@@ -26,12 +29,15 @@ export default function App() {
             <Route path="/events" element={<EventListPage />} />
             <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/buy-tokens" element={<BuyTokensPage />} />
-            <Route path="/premium" element={<PremiumPage />} />
             <Route path="/finance" element={<FinancePage />} />
+            <Route path="/buy-tokens" element={<BuyTokensPage />} />
             <Route path="/withdraw" element={<WithdrawPage />} />
+            <Route path="/premium" element={<PremiumPage />} />
             <Route path="/moderation" element={<ModerationPage />} />
             <Route path="/users/:id" element={<UserProfilePage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin/analytics" element={<AnalyticsPage />} />
           </Routes>
         </Layout>
       </BrowserRouter>

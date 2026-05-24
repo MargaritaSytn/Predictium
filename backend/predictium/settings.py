@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "predictions",
     "payments",
     "ai_hints",
+    "notifications",
 ]
 
 MIDDLEWARE = [
