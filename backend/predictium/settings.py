@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     # Local
     "core",
     "accounts",
+    "events",
+    "predictions",
+    "payments",
 ]
 
 MIDDLEWARE = [
@@ -163,6 +166,8 @@ REST_FRAMEWORK = {
         "user": "2000/day",
         "login": "5/min",
         "register": "3/min",
+        "prediction": "30/min",
+        "withdraw": "3/min",
     },
 }
 
@@ -197,3 +202,17 @@ SOCIALACCOUNT_PROVIDERS = {
         "SCOPE": ["email", "public_profile"],
     },
 }
+
+# PayPal
+PAYPAL_MODE = os.getenv("PAYPAL_MODE", "sandbox")
+PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
+PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
+PAYPAL_RETURN_URL = os.getenv("PAYPAL_RETURN_URL", "http://localhost:5173/payment/success")
+PAYPAL_CANCEL_URL = os.getenv("PAYPAL_CANCEL_URL", "http://localhost:5173/payment/cancel")
+
+# Token economy
+TOKEN_PRICE_USD = 0.10
+TOKEN_WITHDRAWAL_FEE = 0.03
+MIN_WITHDRAWAL_TOKENS = 100
+PREMIUM_PRICE_USD = 9.99
+PREMIUM_DURATION_DAYS = 30
