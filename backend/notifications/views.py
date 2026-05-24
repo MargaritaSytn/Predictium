@@ -50,6 +50,11 @@ class RegisterDeviceTokenView(APIView):
         token = request.data.get("token", "").strip()
         if not token:
             return Response({"detail": "Token is required."}, status=status.HTTP_400_BAD_REQUEST)
-        # Upsert: create or update the token for this user
-        DeviceToken.objects.update_or_create(token=token, defaults={"user": request.user})
+        token_type = request.data.get("token_type", "expo").strip()
+        if token_type not in ("expo", "fcm"):
+            token_type = "expo"
+        DeviceToken.objects.update_or_create(
+            token=token,
+            defaults={"user": request.user, "token_type": token_type},
+        )
         return Response({"detail": "Device token registered."}, status=status.HTTP_200_OK)
