@@ -54,9 +54,17 @@ class Event(models.Model):
         ("completed", "Completed"),
     ]
 
+    CATEGORY_CHOICES = [
+        ("sports", "Спорт"),
+        ("politics", "Політика"),
+        ("technology", "Технології"),
+        ("crypto", "Криптовалюта"),
+        ("space", "Космос"),
+    ]
+
     title = models.CharField(max_length=255)
     description = models.TextField()
-    category = models.CharField(max_length=100)
+    category = models.CharField(max_length=100, choices=CATEGORY_CHOICES)
     image_url = models.URLField(blank=True, default="")
     deadline = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
