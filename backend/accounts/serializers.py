@@ -40,10 +40,10 @@ class TopPredictorSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     bio = serializers.CharField(source="profile.bio", read_only=True)
-    success_rate = serializers.FloatField(source="profile.success_rate", read_only=True)
-    won_predictions = serializers.IntegerField(source="profile.won_predictions", read_only=True)
-    total_predictions = serializers.IntegerField(source="profile.total_predictions", read_only=True)
     wallet_balance = serializers.IntegerField(source="wallet.current_balance", read_only=True)
+    total_predictions = serializers.SerializerMethodField()
+    won_predictions = serializers.SerializerMethodField()
+    success_rate = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -54,15 +54,28 @@ class UserProfileSerializer(serializers.ModelSerializer):
         )
         read_only_fields = fields
 
+    def get_total_predictions(self, obj):
+        return obj.predictions.count()
+
+    def get_won_predictions(self, obj):
+        return obj.predictions.filter(prediction_status="won").count()
+
+    def get_success_rate(self, obj):
+        completed = obj.predictions.filter(prediction_status__in=["won", "lost"]).count()
+        if completed == 0:
+            return 0.0
+        won = obj.predictions.filter(prediction_status="won").count()
+        return round((won / completed) * 100, 1)
+
 
 class PublicUserSerializer(serializers.ModelSerializer):
-    success_rate = serializers.FloatField(source="profile.success_rate", read_only=True)
-    total_predictions = serializers.IntegerField(source="profile.total_predictions", read_only=True)
-    won_predictions = serializers.IntegerField(source="profile.won_predictions", read_only=True)
     bio = serializers.CharField(source="profile.bio", read_only=True)
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
+    total_predictions = serializers.SerializerMethodField()
+    won_predictions = serializers.SerializerMethodField()
+    success_rate = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -84,6 +97,19 @@ class PublicUserSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.followers.filter(follower=request.user).exists()
         return False
+
+    def get_total_predictions(self, obj):
+        return obj.predictions.count()
+
+    def get_won_predictions(self, obj):
+        return obj.predictions.filter(prediction_status="won").count()
+
+    def get_success_rate(self, obj):
+        completed = obj.predictions.filter(prediction_status__in=["won", "lost"]).count()
+        if completed == 0:
+            return 0.0
+        won = obj.predictions.filter(prediction_status="won").count()
+        return round((won / completed) * 100, 1)
 
 
 class CreateReportSerializer(serializers.ModelSerializer):
