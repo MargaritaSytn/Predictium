@@ -16,6 +16,7 @@ import UserProfilePage from "./pages/UserProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import AdminPage from "./pages/AdminPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import PaymentResultPage from "./pages/PaymentResultPage";
 
 export default function App() {
   return (
@@ -38,6 +39,8 @@ export default function App() {
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/admin/analytics" element={<AnalyticsPage />} />
+            <Route path="/payment/success" element={<PaymentResultPage status="success" />} />
+            <Route path="/payment/cancel" element={<PaymentResultPage status="cancel" />} />
           </Routes>
         </Layout>
       </BrowserRouter>
