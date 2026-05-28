@@ -18,9 +18,9 @@ class PurchaseTokensSerializer(serializers.Serializer):
 
 
 class ExecutePaymentSerializer(serializers.Serializer):
-    payment_id = serializers.CharField()
-    payer_id = serializers.CharField()
+    order_id = serializers.CharField()
 
 
 class WithdrawSerializer(serializers.Serializer):
     token_amount = serializers.IntegerField(min_value=1)
+    paypal_email = serializers.EmailField()
