@@ -106,6 +106,18 @@ class ProfileView(generics.RetrieveAPIView):
         return self.request.user
 
 
+class ClaimDailyBonusView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        bonus_granted = _grant_daily_bonus(request.user)
+        request.user.refresh_from_db()
+        return Response({
+            "user": UserProfileSerializer(request.user).data,
+            "daily_bonus_granted": bonus_granted,
+        })
+
+
 class TopPredictorsView(generics.ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = TopPredictorSerializer
@@ -358,4 +370,3 @@ class FacebookAuthView(APIView):
             )
 
         return _social_auth_response(user)
-
