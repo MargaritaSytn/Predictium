@@ -10,7 +10,6 @@ django-filter==25.2
 djangorestframework==3.17.1
 djangorestframework_simplejwt==5.5.1
 idna==3.15
-paypalrestsdk==1.13.3
 pycparser==3.0
 PyJWT==2.12.1
 pyOpenSSL==26.2.0
