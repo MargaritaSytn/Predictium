@@ -1,16 +1,11 @@
 import { useEffect, useState } from "react";
+import { TrendingUp, Trophy } from "lucide-react";
 import { authService } from "../services/authService";
+import { CATEGORIES } from "../constants/categories";
 import { TopPredictor } from "../types";
 import styles from "./Sidebar.module.css";
 
-const CATEGORIES = [
-  { value: "", label: "Всі" },
-  { value: "sports", label: "Спорт" },
-  { value: "politics", label: "Політика" },
-  { value: "technology", label: "Технології" },
-  { value: "crypto", label: "Криптовалюта" },
-  { value: "space", label: "Космос" },
-];
+const SIDEBAR_CATEGORIES = [{ value: "", label: "Всі" }, ...CATEGORIES];
 
 interface SidebarProps {
   activeCategory: string;
@@ -36,24 +31,34 @@ export default function Sidebar({ activeCategory, onCategoryChange }: SidebarPro
   return (
     <aside className={styles.sidebar}>
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>📊 Категорії</h3>
+        <h3 className={styles.sectionTitle}>
+          <TrendingUp size={16} strokeWidth={2} />
+          Категорії
+        </h3>
         <ul className={styles.categoryList}>
-          {CATEGORIES.map((cat) => (
-            <li key={cat.value}>
-              <button
-                className={`${styles.categoryItem} ${activeCategory === cat.value ? styles.categoryItemActive : ""}`}
-                onClick={() => onCategoryChange(cat.value)}
-              >
-                {cat.label}
-              </button>
-            </li>
-          ))}
+          {SIDEBAR_CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat.value;
+            return (
+              <li key={cat.value}>
+                <button
+                  className={`${styles.categoryItem} ${isActive ? styles.categoryItemActive : ""}`}
+                  onClick={() => onCategoryChange(cat.value)}
+                >
+                  <span>{cat.label}</span>
+                  {isActive && <span className={styles.activeDot} />}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </div>
 
       {topPredictors.length > 0 && (
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>🏆 Топ Прогнозисти</h3>
+          <h3 className={styles.sectionTitle}>
+            <Trophy size={16} strokeWidth={2} className={styles.trophyIcon} />
+            Топ Прогнозисти
+          </h3>
           <div className={styles.leaderboardList}>
             {topPredictors.map((predictor, index) => (
               <div key={predictor.id} className={styles.leaderboardItem}>
