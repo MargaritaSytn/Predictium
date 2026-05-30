@@ -2,7 +2,7 @@ from pathlib import Path
 from datetime import timedelta
 import os
 import sys
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -88,6 +88,10 @@ WSGI_APPLICATION = "predictium.wsgi.application"
 _database_url = os.getenv("DATABASE_URL")
 if _database_url:
     _db = urlparse(_database_url)
+    _db_options = {}
+    _db_params = parse_qs(_db.query)
+    if "sslmode" in _db_params:
+        _db_options["sslmode"] = _db_params["sslmode"][0]
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -97,6 +101,7 @@ if _database_url:
             "HOST": _db.hostname,
             "PORT": str(_db.port or 5432),
             "CONN_MAX_AGE": 600,
+            "OPTIONS": _db_options,
         }
     }
 else:
@@ -123,7 +128,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
