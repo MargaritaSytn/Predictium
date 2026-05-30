@@ -61,11 +61,12 @@ class EventListSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
 
     class Meta:
         model = Review
-        fields = ("id", "username", "rating", "comment_text", "created_at", "is_approved")
-        read_only_fields = ("id", "username", "created_at", "is_approved")
+        fields = ("id", "user_id", "username", "rating", "comment_text", "created_at", "is_approved")
+        read_only_fields = ("id", "user_id", "username", "created_at", "is_approved")
 
 
 class CreateReviewSerializer(serializers.ModelSerializer):
