@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Event } from "../types";
+import { categoryLabel } from "../constants/categories";
 import styles from "./EventCard.module.css";
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -8,8 +9,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   technology: "#4caf50",
   crypto: "#ff9800",
   space: "#00bcd4",
-  entertainment: "#e91e63",
-  weather: "#2196f3",
 };
 
 export default function EventCard({ event }: { event: Event }) {
@@ -36,7 +35,7 @@ export default function EventCard({ event }: { event: Event }) {
         )}
         <div className={styles.badges}>
           <span className={styles.categoryBadge} style={{ background: catColor }}>
-            {event.category}
+            {categoryLabel(event.category)}
           </span>
           {isTrending && (
             <span className={styles.trendingBadge}>

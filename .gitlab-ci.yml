@@ -35,16 +35,9 @@ calculate_version:
         done
         VERSION="${BASE_VERSION}-${TAG_BRANCH}.${NUMBER}"
       fi
-    - |
-      if [ "$BRANCH" = "stable" ]; then
-        PRERELEASE=false
-      else
-        PRERELEASE=true
-      fi
     - echo "Version $VERSION"
-    - echo "VERSION=$VERSION"       >  release.env
-    - echo "BRANCH=$BRANCH"         >> release.env
-    - echo "PRERELEASE=$PRERELEASE" >> release.env
+    - echo "VERSION=$VERSION" >  release.env
+    - echo "BRANCH=$BRANCH"   >> release.env
   artifacts:
     reports:
       dotenv: release.env
@@ -57,9 +50,9 @@ create_release:
     - job: calculate_version
       artifacts: true
   script:
-    - echo "Creating release $VERSION (prerelease=$PRERELEASE) from $CI_COMMIT_SHA"
+    - echo "Creating release $VERSION from $CI_COMMIT_SHA"
   release:
     tag_name: "$VERSION"
     name: "$VERSION"
-    description: "Release $VERSION (prerelease=$PRERELEASE)"
+    description: "Release $VERSION"
     ref: "$CI_COMMIT_SHA"

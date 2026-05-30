@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import { Event, EventOutcome, Review, HintResponse } from "../types";
 import { AxiosError } from "axios";
 import StarRating from "../components/StarRating";
+import { categoryLabel } from "../constants/categories";
 import styles from "./EventDetailPage.module.css";
 
 interface Message {
@@ -146,7 +147,7 @@ export default function EventDetailPage() {
       <div className={styles.card}>
         <div className={styles.badges}>
           <span className={`${styles.badge} ${styles.badgeCategory}`}>
-            {event.category}
+            {categoryLabel(event.category)}
           </span>
           <span className={`${styles.badge} ${event.status === "open" ? styles.badgeOpen : styles.badgeClosed}`}>
             {event.status === "open" ? "Активна" : event.status}
@@ -322,7 +323,7 @@ export default function EventDetailPage() {
             {reviews.map((review) => (
               <div key={review.id} className={styles.reviewItem}>
                 <div className={styles.reviewHeader}>
-                  <Link to={`/users/${review.id}`} className={styles.reviewUser}>{review.username}</Link>
+                  <Link to={`/users/${review.user_id}`} className={styles.reviewUser}>{review.username}</Link>
                   <StarRating value={review.rating} readonly size={16} />
                   <span className={styles.reviewDate}>
                     {new Date(review.created_at).toLocaleDateString("uk-UA")}

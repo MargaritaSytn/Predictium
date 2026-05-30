@@ -2,7 +2,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 from core.models import Event, EventOutcome, Review
 from .serializers import (
     EventListSerializer, EventDetailSerializer,
@@ -18,7 +18,7 @@ class EventListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Event.objects.exclude(status="draft").annotate(
             prediction_count=Count("predictions"),
-            review_count=Count("reviews"),
+            review_count=Count("reviews", filter=Q(reviews__is_approved=True)),
         ).order_by("-created_at")
 
         category = self.request.query_params.get("category")
@@ -39,7 +39,7 @@ class EventDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return Event.objects.annotate(
             prediction_count=Count("predictions"),
-            review_count=Count("reviews"),
+            review_count=Count("reviews", filter=Q(reviews__is_approved=True)),
             total_tokens_wagered=Sum("predictions__amount_tokens"),
         )
 
@@ -70,6 +70,7 @@ class TopEventsView(APIView):
 class EventReviewListView(generics.ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ReviewSerializer
+    pagination_class = None
 
     def get_queryset(self):
         return Review.objects.filter(
@@ -153,7 +154,7 @@ class AdminEventListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         return Event.objects.annotate(
             prediction_count=Count("predictions"),
-            review_count=Count("reviews"),
+            review_count=Count("reviews", filter=Q(reviews__is_approved=True)),
             total_tokens_wagered=Sum("predictions__amount_tokens"),
         ).order_by("-created_at")
 
@@ -163,7 +164,7 @@ class AdminEventListCreateView(generics.ListCreateAPIView):
         event = serializer.save()
         annotated = Event.objects.annotate(
             prediction_count=Count("predictions"),
-            review_count=Count("reviews"),
+            review_count=Count("reviews", filter=Q(reviews__is_approved=True)),
             total_tokens_wagered=Sum("predictions__amount_tokens"),
         ).get(pk=event.pk)
         return Response(
@@ -184,7 +185,7 @@ class AdminEventDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Event.objects.annotate(
             prediction_count=Count("predictions"),
-            review_count=Count("reviews"),
+            review_count=Count("reviews", filter=Q(reviews__is_approved=True)),
             total_tokens_wagered=Sum("predictions__amount_tokens"),
         )
 

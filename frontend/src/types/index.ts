@@ -56,6 +56,7 @@ export interface Transaction {
 
 export interface Review {
   id: number;
+  user_id: number;
   username: string;
   rating: number;
   comment_text: string;
@@ -174,4 +175,3 @@ export interface CreateEventPayload {
   status: string;
   outcomes: string[];
 }
-
