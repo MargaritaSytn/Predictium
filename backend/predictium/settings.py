@@ -24,7 +24,7 @@ if not _secret_key:
         raise ImproperlyConfigured("SECRET_KEY environment variable must be set in production")
 SECRET_KEY = _secret_key
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,10.0.2.2").split(",")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
