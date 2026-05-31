@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Calendar, Users, MessageSquare, Sparkles, Flag } from "lucide-react";
+import { ArrowLeft, Calendar, Users, MessageSquare, Sparkles, Flag, Share2, CalendarPlus } from "lucide-react";
 import { eventService } from "../services/eventService";
 import { predictionService } from "../services/predictionService";
 import { reviewService } from "../services/reviewService";
@@ -16,6 +16,43 @@ import styles from "./EventDetailPage.module.css";
 interface Message {
   type: "success" | "error";
   text: string;
+}
+
+function shareEvent(title: string, eventId: number) {
+  const url = `${window.location.origin}/events/${eventId}`;
+  const text = `Дивись цю подію на Predictium: ${title}`;
+  if (navigator.share) {
+    navigator.share({ title, text, url }).catch(() => {});
+  } else {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank", "width=600,height=400");
+  }
+}
+
+function sharePrediction(title: string, outcome: string, eventId: number) {
+  const url = `${window.location.origin}/events/${eventId}`;
+  const text = `Я спрогнозував "${outcome}" для події "${title}" на Predictium!`;
+  if (navigator.share) {
+    navigator.share({ title: `Мій прогноз: ${outcome}`, text, url }).catch(() => {});
+  } else {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, "_blank", "width=600,height=400");
+  }
+}
+
+function addToGoogleCalendar(title: string, deadline: string, description: string) {
+  const end = new Date(deadline);
+  const start = new Date(end.getTime() - 60 * 60 * 1000); // 1 година до дедлайну
+
+  const fmt = (d: Date) =>
+    d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `Predictium: ${title} — дедлайн`,
+    dates: `${fmt(start)}/${fmt(end)}`,
+    details: description.slice(0, 500),
+  });
+
+  window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, "_blank");
 }
 
 export default function EventDetailPage() {
@@ -37,6 +74,8 @@ export default function EventDetailPage() {
   const [hintLoading, setHintLoading] = useState(false);
   const [hintError, setHintError] = useState<string | null>(null);
   const [hintsRemaining, setHintsRemaining] = useState<number | null>(null);
+  const [dailyLimit, setDailyLimit] = useState<number | null>(null);
+  const [lastPredictionOutcome, setLastPredictionOutcome] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -49,7 +88,10 @@ export default function EventDetailPage() {
       .catch(console.error);
     if (user) {
       hintService.getStatus()
-        .then((res) => setHintsRemaining(res.data.hints_remaining))
+        .then((res) => {
+          setHintsRemaining(res.data.hints_remaining);
+          setDailyLimit(res.data.daily_limit);
+        })
         .catch(console.error);
     }
   }, [id, user]);
@@ -65,6 +107,7 @@ export default function EventDetailPage() {
         selected_outcome: selectedOutcome.id,
         amount_tokens: parseInt(amount),
       });
+      setLastPredictionOutcome(selectedOutcome.label);
       setMessage({
         type: "success",
         text: `Прогноз зроблено! ${amount} токенів на «${selectedOutcome.label}» з коефіцієнтом ${res.data.locked_coefficient}x`,
@@ -173,6 +216,18 @@ export default function EventDetailPage() {
             <span><Users size={14} /> {event.prediction_count || 0} прогнозів</span>
             <span><MessageSquare size={14} /> {event.review_count || 0} відгуків</span>
           </div>
+          <div className={styles.heroActions}>
+            <button
+              className={styles.heroActionBtn}
+              onClick={() => addToGoogleCalendar(event.title, event.deadline, event.description)}
+              title="Додати в Google Calendar"
+            >
+              <CalendarPlus size={14} /> Google Calendar
+            </button>
+            <button className={styles.heroActionBtn} onClick={() => shareEvent(event.title, event.id)} title="Поділитися">
+              <Share2 size={14} /> Поділитися
+            </button>
+          </div>
         </div>
       </div>
 
@@ -217,7 +272,7 @@ export default function EventDetailPage() {
               </span>
               {hintsRemaining !== null && (
                 <span className={styles.hintBadge}>
-                  {hintsRemaining} з {user.premium_status ? "5" : "1"} залишилось
+                  {hintsRemaining} з {dailyLimit ?? (user.premium_status ? 5 : 2)} залишилось
                 </span>
               )}
             </div>
@@ -296,6 +351,25 @@ export default function EventDetailPage() {
                 {submitting ? "Обробка..." : "Зробити прогноз"}
               </button>
             </form>
+          </div>
+        )}
+
+        {lastPredictionOutcome && (
+          <div className={styles.sharePrediction}>
+            <span>Поділіться своїм прогнозом:</span>
+            <button className={styles.shareBtn} onClick={() => sharePrediction(event.title, lastPredictionOutcome, event.id)}>
+              <Share2 size={14} /> Поділитися
+            </button>
+            <button className={styles.shareBtn} onClick={() => {
+              const url = `${window.location.origin}/events/${event.id}`;
+              const text = `Я спрогнозував "${lastPredictionOutcome}" для "${event.title}"!`;
+              window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank", "width=600,height=400");
+            }}>X</button>
+            <button className={styles.shareBtn} onClick={() => {
+              const url = `${window.location.origin}/events/${event.id}`;
+              const text = `Я спрогнозував "${lastPredictionOutcome}" для "${event.title}"! ${url}`;
+              window.open(`https://www.threads.net/intent/post?text=${encodeURIComponent(text)}`, "_blank", "width=600,height=400");
+            }}>Threads</button>
           </div>
         )}
 
