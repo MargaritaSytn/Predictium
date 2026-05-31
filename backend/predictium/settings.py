@@ -24,7 +24,7 @@ if not _secret_key:
         raise ImproperlyConfigured("SECRET_KEY environment variable must be set in production")
 SECRET_KEY = _secret_key
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,10.0.2.2").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -230,3 +230,6 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 AI_HINT_MODEL = os.getenv("AI_HINT_MODEL", "gemini-2.0-flash")
 AI_HINT_FREE_LIMIT = int(os.getenv("AI_HINT_FREE_LIMIT", "2"))
 AI_HINT_PREMIUM_LIMIT = int(os.getenv("AI_HINT_PREMIUM_LIMIT", "5"))
+
+# Firebase Admin SDK — used for FCM push notifications (Android)
+FIREBASE_CREDENTIALS_PATH = os.getenv("FIREBASE_CREDENTIALS_PATH", "")
