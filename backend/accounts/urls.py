@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView, LoginView, ProfileView, TopPredictorsView,
+    ClaimDailyBonusView,
     PublicProfileView, FollowUserView, FollowersListView, FollowingListView,
     CreateReportView, ReportListView,
     PlatformStatsView, AdminUserListView, AdminUserDetailView,
@@ -13,6 +14,7 @@ urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("profile/", ProfileView.as_view(), name="profile"),
+    path("claim-bonus/", ClaimDailyBonusView.as_view(), name="claim-bonus"),
     path("top-predictors/", TopPredictorsView.as_view(), name="top-predictors"),
     path("users/<int:pk>/", PublicProfileView.as_view(), name="public-profile"),
     path("users/<int:pk>/follow/", FollowUserView.as_view(), name="follow-user"),
