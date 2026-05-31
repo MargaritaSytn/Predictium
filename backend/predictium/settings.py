@@ -225,7 +225,8 @@ MIN_WITHDRAWAL_TOKENS = 100
 PREMIUM_PRICE_USD = 9.99
 PREMIUM_DURATION_DAYS = 30
 
-# Anthropic AI
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-AI_HINT_FREE_LIMIT = int(os.getenv("AI_HINT_FREE_LIMIT", "1"))
+# Google Gemini (free tier) — used for AI prediction hints
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+AI_HINT_MODEL = os.getenv("AI_HINT_MODEL", "gemini-2.0-flash")
+AI_HINT_FREE_LIMIT = int(os.getenv("AI_HINT_FREE_LIMIT", "2"))
 AI_HINT_PREMIUM_LIMIT = int(os.getenv("AI_HINT_PREMIUM_LIMIT", "5"))
