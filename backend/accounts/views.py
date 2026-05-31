@@ -2,6 +2,8 @@ import logging
 import urllib.request
 import json
 
+import requests
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum, Avg
@@ -274,33 +276,33 @@ def _social_auth_response(user):
 
 
 class GoogleAuthView(APIView):
-    """Verify Google ID token and return JWT credentials."""
+    """Verify Google access_token via userinfo endpoint and return JWT credentials."""
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        id_token = request.data.get("id_token", "").strip()
-        if not id_token:
+        access_token = request.data.get("access_token", "").strip()
+        if not access_token:
             return Response(
-                {"detail": "id_token is required."},
+                {"detail": "access_token is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
-            from google.oauth2 import id_token as google_id_token
-            from google.auth.transport import requests as google_requests
-
-            client_id = getattr(settings, "GOOGLE_ANDROID_CLIENT_ID", None) or getattr(settings, "GOOGLE_CLIENT_ID", "")
-            idinfo = google_id_token.verify_oauth2_token(
-                id_token, google_requests.Request(), client_id
+            resp = requests.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"},
+                timeout=10,
             )
-        except Exception as exc:
-            logger.warning("Google token verification failed: %s", exc)
+            resp.raise_for_status()
+            userinfo = resp.json()
+        except (requests.RequestException, ValueError) as exc:
+            logger.warning("Google userinfo failed: %s", exc)
             return Response(
                 {"detail": "Invalid Google token."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        email = idinfo.get("email")
+        email = userinfo.get("email")
         if not email:
             return Response(
                 {"detail": "Google account has no email."},
@@ -309,7 +311,7 @@ class GoogleAuthView(APIView):
 
         user = User.objects.filter(email=email).first()
         if not user:
-            username = idinfo.get("name", email.split("@")[0])
+            username = userinfo.get("name", email.split("@")[0])
             base_username = username
             counter = 1
             while User.objects.filter(username=username).exists():
@@ -370,3 +372,4 @@ class FacebookAuthView(APIView):
             )
 
         return _social_auth_response(user)
+
