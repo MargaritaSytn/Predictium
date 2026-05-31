@@ -174,7 +174,8 @@ def initiate_withdrawal(user, token_amount, paypal_email):
     if wallet.current_balance < token_amount:
         raise PaymentError("Insufficient balance.")
 
-    fee = round(token_amount * settings.TOKEN_WITHDRAWAL_FEE)
+    fee_rate = 0 if user.premium_status else settings.TOKEN_WITHDRAWAL_FEE
+    fee = round(token_amount * fee_rate)
     net_tokens = token_amount - fee
     usd_amount = round(net_tokens * settings.TOKEN_PRICE_USD, 2)
 

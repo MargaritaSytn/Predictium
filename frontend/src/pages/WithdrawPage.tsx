@@ -7,7 +7,6 @@ import { AxiosError } from "axios";
 import SuccessModal from "../components/SuccessModal";
 import styles from "../styles/formPage.module.css";
 
-const WITHDRAWAL_FEE = 0.03;
 const MIN_WITHDRAWAL = 100;
 const TOKEN_PRICE_USD = 0.10;
 
@@ -23,8 +22,9 @@ export default function WithdrawPage() {
 
   if (!user) return <Navigate to="/login" replace />;
 
+  const feeRate = user.premium_status ? 0 : 0.03;
   const tokenAmount = parseInt(amount) || 0;
-  const fee = Math.ceil(tokenAmount * WITHDRAWAL_FEE);
+  const fee = Math.ceil(tokenAmount * feeRate);
   const netTokens = tokenAmount - fee;
   const netUSD = (netTokens * TOKEN_PRICE_USD).toFixed(2);
 
@@ -78,7 +78,9 @@ export default function WithdrawPage() {
         <p className={styles.subtitle}>Доступний баланс: {user.wallet_balance.toLocaleString()} токенів</p>
 
         <div className={styles.warning}>
-          Комісія {WITHDRAWAL_FEE * 100}% стягується при виведенні. Мінімальна сума: {MIN_WITHDRAWAL} токенів.
+          {user.premium_status
+            ? `Комісія 0% — ви преміум користувач. Мінімальна сума: ${MIN_WITHDRAWAL} токенів.`
+            : `Комісія 3% стягується при виведенні. Мінімальна сума: ${MIN_WITHDRAWAL} токенів.`}
         </div>
 
         <input
@@ -106,8 +108,8 @@ export default function WithdrawPage() {
               <span className={styles.summaryValue}>{tokenAmount.toLocaleString()} токенів</span>
             </div>
             <div className={styles.summaryRow}>
-              <span>Комісія ({WITHDRAWAL_FEE * 100}%):</span>
-              <span className={styles.summaryValueRed}>-{fee} токенів</span>
+              <span>Комісія ({feeRate * 100}%):</span>
+              <span className={fee > 0 ? styles.summaryValueRed : styles.summaryValueGreen}>-{fee} токенів</span>
             </div>
             <div className={styles.summaryRow}>
               <span>Ви отримаєте:</span>
