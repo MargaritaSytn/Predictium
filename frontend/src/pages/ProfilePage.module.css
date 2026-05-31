@@ -315,6 +315,46 @@
   margin-bottom: var(--space-xl);
 }
 
+.tabRow {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.tab {
+  padding: var(--space-sm) var(--space-lg);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  margin-bottom: -1px;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+}
+
+.tabActive {
+  color: var(--accent-from);
+  border-bottom-color: var(--accent-from);
+}
+
+.feedUser {
+  color: var(--accent-from);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.feedUser:hover {
+  text-decoration: underline;
+}
+
 .emptyState {
   text-align: center;
   padding: var(--space-2xl);

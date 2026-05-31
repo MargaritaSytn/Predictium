@@ -135,6 +135,28 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.btnPremium {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 10px var(--space-lg);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: filter var(--transition-fast);
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #fff;
+  border: none;
+}
+
+.btnPremium:hover {
+  filter: brightness(1.1);
+  color: #fff;
+}
+
 .sideStats {
   display: flex;
   flex-direction: column;

@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django.db.models import Count, Sum, Q
+from django.http import HttpResponse
+from django.utils import timezone
 from core.models import Event, EventOutcome, Review
 from .serializers import (
     EventListSerializer, EventDetailSerializer,
@@ -222,4 +224,44 @@ class AdminDeleteOutcomeView(APIView):
             )
         outcome.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EventICalView(APIView):
+    """Return an iCal (.ics) file for an event deadline."""
+    permission_classes = (AllowAny,)
+
+    def get(self, request, pk):
+        event = Event.objects.filter(pk=pk).first()
+        if not event:
+            return Response({"detail": "Подію не знайдено."}, status=status.HTTP_404_NOT_FOUND)
+
+        now = timezone.now()
+        uid = f"predictium-event-{event.id}@predictium.app"
+        dtstart = event.deadline.strftime("%Y%m%dT%H%M%SZ")
+        dtstamp = now.strftime("%Y%m%dT%H%M%SZ")
+        created = event.created_at.strftime("%Y%m%dT%H%M%SZ")
+
+        def esc(s):
+            return s.replace("\\", "\\\\").replace(",", "\\,").replace(";", "\\;").replace("\n", "\\n")
+
+        ical = (
+            "BEGIN:VCALENDAR\r\n"
+            "VERSION:2.0\r\n"
+            "PRODID:-//Predictium//Predictium//EN\r\n"
+            "CALSCALE:GREGORIAN\r\n"
+            "METHOD:PUBLISH\r\n"
+            "BEGIN:VEVENT\r\n"
+            f"UID:{uid}\r\n"
+            f"DTSTART:{dtstart}\r\n"
+            f"DTEND:{dtstart}\r\n"
+            f"DTSTAMP:{dtstamp}\r\n"
+            f"CREATED:{created}\r\n"
+            f"SUMMARY:{esc(event.title)}\r\n"
+            f"DESCRIPTION:{esc(event.description[:500])}\r\n"
+            "END:VEVENT\r\n"
+            "END:VCALENDAR\r\n"
+        )
+        response = HttpResponse(ical, content_type="text/calendar; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="event-{pk}.ics"'
+        return response
 
