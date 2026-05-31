@@ -27,6 +27,17 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+def _expire_premium_if_needed(user):
+    if not user.premium_status:
+        return
+    sub = getattr(user, "premium_subscription", None)
+    if sub and sub.end_date < timezone.now():
+        user.premium_status = False
+        user.save(update_fields=["premium_status"])
+        sub.status = "expired"
+        sub.save(update_fields=["status"])
+
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
@@ -84,15 +95,15 @@ class LoginView(APIView):
         password = serializer.validated_data["password"]
         user = User.objects.filter(email=email).first()
         if user and user.check_password(password):
-            bonus_granted = _grant_daily_bonus(user)
-            user.refresh_from_db()
+            _expire_premium_if_needed(user)
             request.session["login_count"] = request.session.get("login_count", 0) + 1
             refresh = RefreshToken.for_user(user)
+            today = timezone.now().date()
             return Response({
                 "user": UserProfileSerializer(user).data,
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
-                "daily_bonus_granted": bonus_granted,
+                "daily_bonus_available": user.last_login_date != today,
             })
         return Response(
             {"detail": "Invalid credentials."},
@@ -105,6 +116,7 @@ class ProfileView(generics.RetrieveAPIView):
     serializer_class = UserProfileSerializer
 
     def get_object(self):
+        _expire_premium_if_needed(self.request.user)
         return self.request.user
 
 
@@ -264,14 +276,13 @@ class AdminUserDetailView(generics.RetrieveAPIView):
 
 def _social_auth_response(user):
     """Generate JWT tokens and profile for a social-authenticated user."""
-    bonus_granted = _grant_daily_bonus(user)
-    user.refresh_from_db()
     refresh = RefreshToken.for_user(user)
+    today = timezone.now().date()
     return Response({
         "user": UserProfileSerializer(user).data,
         "access": str(refresh.access_token),
         "refresh": str(refresh),
-        "daily_bonus_granted": bonus_granted,
+        "daily_bonus_available": user.last_login_date != today,
     })
 
 
