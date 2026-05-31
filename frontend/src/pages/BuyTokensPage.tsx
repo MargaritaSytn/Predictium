@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigate, Link } from "react-router-dom";
+import { ArrowLeft, CreditCard } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { paymentService } from "../services/paymentService";
 import { AxiosError } from "axios";
@@ -49,7 +50,7 @@ export default function BuyTokensPage() {
 
   return (
     <div className={styles.page}>
-      <Link to="/finance" className={styles.backLink}>← Назад до фінансів</Link>
+      <Link to="/finance" className={styles.backLink}><ArrowLeft size={16} /> Назад до фінансів</Link>
       <div className={styles.card}>
         <h1 className={styles.h1}>Купити токени</h1>
         <p className={styles.subtitle}>Поточний баланс: {user.wallet_balance.toLocaleString()} токенів</p>
@@ -97,6 +98,7 @@ export default function BuyTokensPage() {
           disabled={loading || tokenAmount < 10}
           onClick={handlePurchase}
         >
+          <CreditCard size={16} />
           {loading ? "Перенаправлення на PayPal..." : `Оплатити $${totalUSD} через PayPal`}
         </button>
       </div>

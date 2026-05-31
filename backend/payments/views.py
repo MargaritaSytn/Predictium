@@ -39,8 +39,7 @@ class ExecuteTokenPurchaseView(APIView):
         try:
             execute_token_purchase(
                 request.user,
-                serializer.validated_data["payment_id"],
-                serializer.validated_data["payer_id"],
+                serializer.validated_data["order_id"],
             )
             return Response({"detail": "Tokens purchased successfully."})
         except PaymentError as e:
@@ -67,8 +66,7 @@ class ExecutePremiumPurchaseView(APIView):
         try:
             execute_premium_purchase(
                 request.user,
-                serializer.validated_data["payment_id"],
-                serializer.validated_data["payer_id"],
+                serializer.validated_data["order_id"],
             )
             return Response({"detail": "Premium activated!"})
         except PaymentError as e:
@@ -98,7 +96,9 @@ class WithdrawView(APIView):
         serializer.is_valid(raise_exception=True)
         try:
             result = initiate_withdrawal(
-                request.user, serializer.validated_data["token_amount"]
+                request.user,
+                serializer.validated_data["token_amount"],
+                serializer.validated_data["paypal_email"],
             )
             return Response(result, status=status.HTTP_201_CREATED)
         except PaymentError as e:

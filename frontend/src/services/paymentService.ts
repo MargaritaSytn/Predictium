@@ -2,20 +2,22 @@ import api from "../api/api";
 import { PaginatedResponse, Transaction } from "../types";
 
 interface PurchaseResponse {
+  transaction_id: number;
   approval_url: string;
-  payment_id: string;
+  order_id: string;
 }
 
 interface ExecuteData {
-  payment_id: string;
-  payer_id: string;
+  order_id: string;
 }
 
 interface WithdrawResponse {
-  detail: string;
+  transaction_id: number;
   tokens_withdrawn: number;
   fee_tokens: number;
-  net_usd: number;
+  net_tokens: number;
+  usd_amount: number;
+  payout_batch_id: string;
 }
 
 export const paymentService = {
@@ -31,8 +33,8 @@ export const paymentService = {
   executePremium: (data: ExecuteData) =>
     api.post<{ detail: string }>("/payments/premium/execute/", data),
 
-  withdraw: (token_amount: number) =>
-    api.post<WithdrawResponse>("/payments/withdraw/", { token_amount }),
+  withdraw: (token_amount: number, paypal_email: string) =>
+    api.post<WithdrawResponse>("/payments/withdraw/", { token_amount, paypal_email }),
 
   getTransactions: (params?: { type?: string; page?: number }) =>
     api.get<PaginatedResponse<Transaction>>("/payments/transactions/", { params }),
