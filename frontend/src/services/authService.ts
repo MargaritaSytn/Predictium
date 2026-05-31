@@ -1,5 +1,5 @@
 import api from "../api/api";
-import { AuthResponse, TopPredictor, User } from "../types";
+import { AuthResponse, ClaimBonusResponse, TopPredictor, User } from "../types";
 
 interface RegisterData {
   username: string;
@@ -14,4 +14,5 @@ export const authService = {
   getProfile: () => api.get<User>("/auth/profile/"),
   refreshToken: (refresh: string) => api.post<{ access: string }>("/auth/token/refresh/", { refresh }),
   getTopPredictors: () => api.get<TopPredictor[]>("/auth/top-predictors/"),
+  claimDailyBonus: () => api.post<ClaimBonusResponse>("/auth/claim-bonus/"),
 };

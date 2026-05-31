@@ -58,3 +58,38 @@ select {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-light);
 }
+
+.gradient-text {
+  background: var(--gradient-brand-horizontal);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.gradient-bg {
+  background: var(--gradient-brand);
+  color: #fff;
+  border: none;
+  transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+
+.gradient-bg:hover {
+  filter: brightness(1.1);
+}
+
+.gradient-bg:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+
+@keyframes shimmer {
+  0% { background-position: -800px 0; }
+  100% { background-position: 800px 0; }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

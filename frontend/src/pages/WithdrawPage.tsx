@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { paymentService } from "../services/paymentService";
 import { AxiosError } from "axios";
+import SuccessModal from "../components/SuccessModal";
 import styles from "../styles/formPage.module.css";
 
 const WITHDRAWAL_FEE = 0.03;
@@ -11,10 +13,13 @@ const TOKEN_PRICE_USD = 0.10;
 
 export default function WithdrawPage() {
   const { user, refreshUser } = useAuth();
+  const navigate = useNavigate();
   const [amount, setAmount] = useState("");
+  const [paypalEmail, setPaypalEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [successAmount, setSuccessAmount] = useState(0);
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -32,12 +37,16 @@ export default function WithdrawPage() {
       setError("Недостатньо коштів на балансі.");
       return;
     }
+    if (!paypalEmail.includes("@")) {
+      setError("Введіть валідний PayPal email.");
+      return;
+    }
     setLoading(true);
     setError("");
-    setSuccess("");
     try {
-      const res = await paymentService.withdraw(tokenAmount);
-      setSuccess(`Виведення ініційовано! ${res.data.tokens_withdrawn} токенів виведено, ви отримаєте $${res.data.net_usd.toFixed(2)}.`);
+      await paymentService.withdraw(tokenAmount, paypalEmail);
+      setSuccessAmount(tokenAmount);
+      setSuccessOpen(true);
       setAmount("");
       await refreshUser();
     } catch (err) {
@@ -48,9 +57,22 @@ export default function WithdrawPage() {
     }
   };
 
+  const handleCloseSuccess = () => {
+    setSuccessOpen(false);
+    navigate(`/finance?paid=withdraw&amount=${successAmount}`, { replace: true });
+  };
+
   return (
     <div className={styles.page}>
-      <Link to="/finance" className={styles.backLink}>← Назад до фінансів</Link>
+      <SuccessModal
+        open={successOpen}
+        title="Заявку прийнято!"
+        description={<>Виведення <strong>{successAmount.toLocaleString()} токенів</strong> знаходиться в обробці.</>}
+        subtext="Зазвичай займає 1–3 робочих дні."
+        buttonLabel="Закрити"
+        onClose={handleCloseSuccess}
+      />
+      <Link to="/finance" className={styles.backLink}><ArrowLeft size={16} /> Назад до фінансів</Link>
       <div className={styles.card}>
         <h1 className={styles.h1}>Вивести кошти</h1>
         <p className={styles.subtitle}>Доступний баланс: {user.wallet_balance.toLocaleString()} токенів</p>
@@ -67,6 +89,14 @@ export default function WithdrawPage() {
           placeholder={`Кількість токенів (мін. ${MIN_WITHDRAWAL})`}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
+        />
+
+        <input
+          className={styles.input}
+          type="email"
+          placeholder="PayPal email отримувача"
+          value={paypalEmail}
+          onChange={(e) => setPaypalEmail(e.target.value)}
         />
 
         {tokenAmount >= MIN_WITHDRAWAL && (
@@ -87,7 +117,6 @@ export default function WithdrawPage() {
         )}
 
         {error && <p className={styles.error}>{error}</p>}
-        {success && <p className={styles.success}>{success}</p>}
 
         <button
           className={styles.btn}

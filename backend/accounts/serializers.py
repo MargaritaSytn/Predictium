@@ -51,6 +51,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "id", "username", "email", "token_balance", "premium_status", "is_staff",
             "registration_date", "bio", "success_rate", "won_predictions",
             "total_predictions", "wallet_balance",
+            "consecutive_login_days", "last_login_date",
         )
         read_only_fields = fields
 

@@ -1,0 +1,61 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-md);
+}
+
+.iconRing {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(52, 211, 153, 0.45);
+  margin-bottom: var(--space-sm);
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.description {
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+
+.description strong {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.subtext {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.button {
+  margin-top: var(--space-md);
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: filter var(--transition-fast);
+}
+
+.button:hover {
+  filter: brightness(1.1);
+}

@@ -1,93 +1,205 @@
 .page {
-  max-width: 420px;
-  margin: 2rem auto;
+  min-height: calc(100vh - var(--navbar-height) - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl) var(--space-md);
 }
 
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 440px;
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   padding: var(--space-2xl);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
 }
 
-.logoWrap {
-  text-align: center;
-  margin-bottom: var(--space-2xl);
+.card::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(168, 85, 247, 0.5), transparent);
 }
 
-.logoIcon {
-  display: inline-flex;
+.brand {
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: var(--accent);
-  border-radius: var(--radius-md);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+}
+
+.brandIcon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-brand);
   color: #fff;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-sm);
+}
+
+.brandText {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--space-md);
 }
 
 .h1 {
   text-align: center;
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
-  margin-bottom: var(--space-xs);
+  margin-bottom: 6px;
+  line-height: 1.2;
 }
 
 .subtitle {
   text-align: center;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--font-size-sm);
   margin-bottom: var(--space-xl);
 }
 
-.input {
-  width: 100%;
-  padding: var(--space-md);
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-size: var(--font-size-base);
-  margin-bottom: var(--space-lg);
-  outline: none;
-  transition: border-color var(--transition-fast);
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
-.input:focus {
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.inputWrap:focus-within {
   border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.fieldIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.input {
+  flex: 1;
+  width: 100%;
+  padding: 12px 12px 12px 38px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--text-dim);
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.eyeBtn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .btn {
+  margin-top: var(--space-sm);
   width: 100%;
-  padding: var(--space-md);
-  background: var(--accent);
+  padding: 12px;
+  background: var(--gradient-brand);
   color: #fff;
   border: none;
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: filter var(--transition-fast), transform var(--transition-fast);
 }
 
-.btn:hover {
-  background: var(--accent-hover);
+.btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .error {
   text-align: center;
   color: var(--danger);
-  margin-bottom: var(--space-lg);
+  background: var(--danger-light);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
   font-size: var(--font-size-sm);
 }
 
 .linkText {
   text-align: center;
   margin-top: var(--space-xl);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--font-size-sm);
+}
+
+.linkText a {
+  color: var(--accent-from);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.linkText a:hover {
+  text-decoration: underline;
 }

@@ -1,15 +1,8 @@
 import { Link } from "react-router-dom";
+import { Flame } from "lucide-react";
 import { Event } from "../types";
-import { categoryLabel } from "../constants/categories";
+import { categoryColors, categoryLabel } from "../constants/categories";
 import styles from "./EventCard.module.css";
-
-const CATEGORY_COLORS: Record<string, string> = {
-  sports: "#f44336",
-  politics: "#9c27b0",
-  technology: "#4caf50",
-  crypto: "#ff9800",
-  space: "#00bcd4",
-};
 
 export default function EventCard({ event }: { event: Event }) {
   const outcomes = event.outcomes || [];
@@ -22,51 +15,55 @@ export default function EventCard({ event }: { event: Event }) {
     noPercent = 100 - yesPercent;
   }
 
-  const catColor = CATEGORY_COLORS[event.category.toLowerCase()] || "#7c5cfc";
+  const catColors = categoryColors(event.category.toLowerCase());
   const isTrending = (event.prediction_count || 0) >= 10;
 
   return (
-    <div className={styles.card}>
+    <Link to={`/events/${event.id}`} className={styles.card}>
       <div className={styles.imageWrap}>
+        <div className={styles.imageOverlay} />
         {event.image_url ? (
           <img src={event.image_url} alt={event.title} className={styles.image} />
         ) : (
           <div className={styles.imagePlaceholder} />
         )}
-        <div className={styles.badges}>
-          <span className={styles.categoryBadge} style={{ background: catColor }}>
-            {categoryLabel(event.category)}
+        <span
+          className={styles.categoryBadge}
+          style={{
+            color: catColors.fg,
+            background: catColors.bg,
+            borderColor: catColors.border,
+          }}
+        >
+          {categoryLabel(event.category)}
+        </span>
+        {isTrending && (
+          <span className={styles.trendingBadge}>
+            <Flame size={14} strokeWidth={2.2} />
+            Трендова
           </span>
-          {isTrending && (
-            <span className={styles.trendingBadge}>
-              🔥 Трендова
-            </span>
-          )}
-        </div>
+        )}
       </div>
 
       <div className={styles.content}>
-        <h3 className={styles.title}>
-          <Link to={`/events/${event.id}`}>{event.title}</Link>
-        </h3>
+        <h3 className={styles.title}>{event.title}</h3>
 
         {outcomes.length >= 2 && (
-          <>
-            <div className={styles.oddsBar}>
+          <div className={styles.oddsBlock}>
+            <div className={styles.oddsRow}>
               <span className={styles.oddsYes}>ТАК {yesPercent}%</span>
               <span className={styles.oddsNo}>НІ {noPercent}%</span>
             </div>
             <div className={styles.progressBar}>
               <div className={styles.progressYes} style={{ width: `${yesPercent}%` }} />
-              <div className={styles.progressNo} style={{ width: `${noPercent}%` }} />
             </div>
-          </>
+          </div>
         )}
 
         <span className={styles.participants}>
           {(event.prediction_count || 0).toLocaleString()} учасників
         </span>
       </div>
-    </div>
+    </Link>
   );
 }

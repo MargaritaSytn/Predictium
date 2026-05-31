@@ -11,6 +11,13 @@ export interface User {
   won_predictions: number;
   total_predictions: number;
   wallet_balance: number;
+  consecutive_login_days: number;
+  last_login_date: string | null;
+}
+
+export interface ClaimBonusResponse {
+  user: User;
+  daily_bonus_granted: boolean;
 }
 
 export interface EventOutcome {

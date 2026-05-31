@@ -1,20 +1,24 @@
 .card {
+  position: relative;
+  display: block;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: border-color var(--transition-base), transform var(--transition-base);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
 }
 
 .card:hover {
-  border-color: var(--border-light);
-  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: 0 24px 60px -20px rgba(168, 85, 247, 0.18);
 }
 
 .imageWrap {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 192px;
   overflow: hidden;
 }
 
@@ -22,106 +26,110 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0.4;
+  transition: transform var(--transition-base), opacity var(--transition-base);
+}
+
+.card:hover .image {
+  transform: scale(1.05);
+  opacity: 0.6;
 }
 
 .imagePlaceholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #1a1a2e 0%, #2a1a4e 50%, #1a2a3e 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
 }
 
-.badges {
+.imageOverlay {
   position: absolute;
-  top: var(--space-md);
-  left: var(--space-md);
-  right: var(--space-md);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  inset: 0;
+  background: linear-gradient(to top, var(--bg-card) 0%, rgba(26, 26, 26, 0.6) 50%, transparent 100%);
+  z-index: 1;
 }
 
 .categoryBadge {
-  padding: var(--space-xs) var(--space-md);
+  position: absolute;
+  top: var(--space-md);
+  left: var(--space-md);
+  padding: 4px 10px;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
-  color: #fff;
-  text-transform: capitalize;
+  border: 1px solid;
+  z-index: 2;
+  backdrop-filter: blur(4px);
 }
 
 .trendingBadge {
-  display: flex;
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-md);
-  border-radius: var(--radius-sm);
-  background: rgba(244, 67, 54, 0.85);
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(248, 113, 113, 0.20);
+  color: var(--danger);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
-  color: #fff;
+  backdrop-filter: blur(4px);
+  z-index: 2;
 }
 
 .content {
-  padding: var(--space-lg);
+  padding: var(--space-xl);
 }
 
 .title {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
   line-height: 1.4;
 }
 
-.title a {
-  color: inherit;
-  text-decoration: none;
+.oddsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
 }
 
-.title a:hover {
-  color: var(--accent);
-}
-
-.oddsBar {
+.oddsRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-sm);
 }
 
 .oddsYes {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   color: var(--success);
 }
 
 .oddsNo {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   color: var(--danger);
 }
 
 .progressBar {
-  height: 4px;
-  border-radius: 2px;
-  display: flex;
+  position: relative;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.05);
   overflow: hidden;
-  margin-bottom: var(--space-md);
 }
 
 .progressYes {
   height: 100%;
-  background: var(--success);
-  transition: width var(--transition-base);
-}
-
-.progressNo {
-  height: 100%;
-  background: var(--danger);
+  background: linear-gradient(to right, #10b981, #34d399);
   transition: width var(--transition-base);
 }
 
 .participants {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--text-muted);
 }

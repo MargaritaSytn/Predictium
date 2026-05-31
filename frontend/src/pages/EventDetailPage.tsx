@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { ArrowLeft, Calendar, Users, MessageSquare, Sparkles, Flag } from "lucide-react";
 import { eventService } from "../services/eventService";
 import { predictionService } from "../services/predictionService";
 import { reviewService } from "../services/reviewService";
@@ -9,7 +10,7 @@ import { useAuth } from "../context/AuthContext";
 import { Event, EventOutcome, Review, HintResponse } from "../types";
 import { AxiosError } from "axios";
 import StarRating from "../components/StarRating";
-import { categoryLabel } from "../constants/categories";
+import { categoryColors, categoryLabel } from "../constants/categories";
 import styles from "./EventDetailPage.module.css";
 
 interface Message {
@@ -66,7 +67,7 @@ export default function EventDetailPage() {
       });
       setMessage({
         type: "success",
-        text: `Прогноз зроблено! ${amount} токенів на "${selectedOutcome.label}" з коефіцієнтом ${res.data.locked_coefficient}x`,
+        text: `Прогноз зроблено! ${amount} токенів на «${selectedOutcome.label}» з коефіцієнтом ${res.data.locked_coefficient}x`,
       });
       setAmount("");
       setSelectedOutcome(null);
@@ -134,34 +135,49 @@ export default function EventDetailPage() {
     ? (parseInt(amount) * selectedOutcome.current_coefficient).toFixed(0)
     : null;
 
+  const catColors = categoryColors(event.category.toLowerCase());
+
   return (
     <div className={styles.page}>
-      <Link to="/" className={styles.backLink}>← Назад до подій</Link>
+      <Link to="/" className={styles.backLink}>
+        <ArrowLeft size={16} /> Назад до подій
+      </Link>
 
-      {event.image_url ? (
-        <img src={event.image_url} alt={event.title} className={styles.heroImage} />
-      ) : (
-        <div className={styles.heroPlaceholder} />
-      )}
+      <div className={styles.hero}>
+        {event.image_url ? (
+          <img src={event.image_url} alt={event.title} className={styles.heroImage} />
+        ) : (
+          <div className={styles.heroPlaceholder} />
+        )}
+        <div className={styles.heroOverlay}>
+          <div className={styles.heroBadges}>
+            <span
+              className={styles.badge}
+              style={{
+                color: catColors.fg,
+                background: catColors.bg,
+                borderColor: catColors.border,
+              }}
+            >
+              {categoryLabel(event.category)}
+            </span>
+            <span
+              className={`${styles.badge} ${event.status === "open" ? styles.badgeOpen : styles.badgeClosed}`}
+            >
+              {event.status === "open" ? "Активна" : event.status}
+            </span>
+          </div>
+          <h1 className={styles.heroTitle}>{event.title}</h1>
+          <div className={styles.heroMeta}>
+            <span><Calendar size={14} /> {new Date(event.deadline).toLocaleDateString("uk-UA")}</span>
+            <span><Users size={14} /> {event.prediction_count || 0} прогнозів</span>
+            <span><MessageSquare size={14} /> {event.review_count || 0} відгуків</span>
+          </div>
+        </div>
+      </div>
 
       <div className={styles.card}>
-        <div className={styles.badges}>
-          <span className={`${styles.badge} ${styles.badgeCategory}`}>
-            {categoryLabel(event.category)}
-          </span>
-          <span className={`${styles.badge} ${event.status === "open" ? styles.badgeOpen : styles.badgeClosed}`}>
-            {event.status === "open" ? "Активна" : event.status}
-          </span>
-        </div>
-
-        <h1 className={styles.title}>{event.title}</h1>
         <p className={styles.description}>{event.description}</p>
-
-        <div className={styles.meta}>
-          <span>📅 Дедлайн: {new Date(event.deadline).toLocaleDateString("uk-UA")}</span>
-          <span>📊 {event.prediction_count || 0} прогнозів</span>
-          <span>💬 {event.review_count || 0} відгуків</span>
-        </div>
 
         {event.result && (
           <div className={styles.result}>Результат: {event.result}</div>
@@ -196,7 +212,9 @@ export default function EventDetailPage() {
         {event.status === "open" && user && (
           <div className={styles.hintSection}>
             <div className={styles.hintHeader}>
-              <span className={styles.hintTitle}>AI-підказка</span>
+              <span className={styles.hintTitle}>
+                <Sparkles size={16} /> AI-підказка
+              </span>
               {hintsRemaining !== null && (
                 <span className={styles.hintBadge}>
                   {hintsRemaining} з {user.premium_status ? "5" : "1"} залишилось
@@ -210,6 +228,7 @@ export default function EventDetailPage() {
                 onClick={handleGetHint}
                 disabled={hintLoading || hintsRemaining === 0}
               >
+                <Sparkles size={16} />
                 {hintLoading ? "Аналіз..." : "Отримати AI-аналіз"}
               </button>
             )}
@@ -247,7 +266,7 @@ export default function EventDetailPage() {
         {event.status === "open" && user && selectedOutcome && (
           <div className={styles.betForm}>
             <h3 className={styles.betFormTitle}>
-              Прогноз на &laquo;{selectedOutcome.label}&raquo;
+              Прогноз на «{selectedOutcome.label}»
             </h3>
             {message && (
               <p className={message.type === "success" ? styles.successMsg : styles.errorMsg}>
@@ -346,7 +365,7 @@ export default function EventDetailPage() {
                       }}
                       disabled={reportingReviewId === review.id}
                     >
-                      ⚑
+                      <Flag size={12} />
                     </button>
                   )}
                 </div>
