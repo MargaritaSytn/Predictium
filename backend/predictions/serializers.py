@@ -22,5 +22,22 @@ class PredictionSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class FeedPredictionSerializer(serializers.ModelSerializer):
+    event_title = serializers.CharField(source="event.title", read_only=True)
+    outcome_label = serializers.CharField(source="selected_outcome.label", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
+
+    class Meta:
+        model = Prediction
+        fields = (
+            "id", "user_id", "username", "event", "event_title",
+            "selected_outcome", "outcome_label",
+            "amount_tokens", "locked_coefficient", "prediction_status",
+            "payout_amount", "created_at",
+        )
+        read_only_fields = fields
+
+
 class ResolveEventSerializer(serializers.Serializer):
     winning_outcome = serializers.IntegerField()
