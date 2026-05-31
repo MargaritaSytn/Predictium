@@ -1,5 +1,5 @@
 import api from "../api/api";
-import { Prediction, PaginatedResponse } from "../types";
+import { Prediction, FeedPrediction, PaginatedResponse } from "../types";
 
 interface PlacePredictionData {
   event: number;
@@ -10,4 +10,5 @@ interface PlacePredictionData {
 export const predictionService = {
   placePrediction: (data: PlacePredictionData) => api.post<Prediction>("/predictions/", data),
   getMyPredictions: (params?: { page?: number }) => api.get<PaginatedResponse<Prediction>>("/predictions/my/", { params }),
+  getFriendsFeed: () => api.get<FeedPrediction[]>("/predictions/feed/"),
 };
