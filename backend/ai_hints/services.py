@@ -1,4 +1,5 @@
-import anthropic
+from google import genai
+from google.genai import errors as genai_errors
 from django.conf import settings
 from django.utils import timezone
 
@@ -50,11 +51,15 @@ def _build_prompt(event) -> str:
         f"Total tokens in pool: {total_pool}\n\n"
         f"Outcomes and current market odds:\n{outcomes_text}\n\n"
         "Provide a concise analysis (3-5 sentences max) covering: "
-        "which outcome the market currently favors, "
+        "which outcome the market currently favors (reference the actual "
+        "coefficients and pool sizes above), "
         "any notable odds imbalances, "
         "and a brief risk/reward observation. "
+        "Be concrete and specific — avoid generic filler. "
         "Do not make definitive predictions. "
-        "Respond in the same language as the event description."
+        "Respond ONLY in the same language as the event description, "
+        "using fluent, grammatically correct wording. "
+        "Output only the analysis itself — no preamble, headings, or reasoning."
     )
 
 
@@ -76,16 +81,22 @@ def get_ai_hint(user, event_id: int) -> dict:
 
     prompt = _build_prompt(event)
 
-    client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
     try:
-        message = client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            max_tokens=400,
-            messages=[{"role": "user", "content": prompt}],
+        response = client.models.generate_content(
+            model=settings.AI_HINT_MODEL,
+            contents=prompt,
+            # Budget is generous so reasoning models (gemini-2.5-pro/flash) have
+            # room to "think" without starving the visible answer; the prompt
+            # keeps the actual hint to 3-5 sentences.
+            config={"max_output_tokens": 2048, "temperature": 0.4},
         )
-        hint_text = message.content[0].text.strip()
-    except anthropic.APIError as e:
+        hint_text = (response.text or "").strip()
+    except genai_errors.APIError as e:
         raise AIHintError(f"Помилка сервісу ШІ: {e}", code="api_error")
+
+    if not hint_text:
+        raise AIHintError("Сервіс ШІ повернув порожню відповідь.", code="api_error")
 
     usage.hints_used += 1
     usage.save(update_fields=["hints_used"])
