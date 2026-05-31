@@ -3,9 +3,9 @@ import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { adminService } from "../services/adminService";
 import { Event, EventOutcome } from "../types";
+import { CATEGORIES, categoryLabel } from "../constants/categories";
 import styles from "./AdminPage.module.css";
 
-const CATEGORIES = ["sports", "politics", "technology", "crypto", "space"];
 const STATUSES = ["draft", "open", "closed", "resolving", "completed"];
 
 const emptyForm = {
@@ -156,7 +156,7 @@ export default function AdminPage() {
             <label className={styles.label}>
               Категорія*
               <select className={styles.input} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </label>
             <label className={styles.label}>
@@ -213,7 +213,7 @@ export default function AdminPage() {
                 <div className={styles.eventHeader}>
                   <div className={styles.eventMeta}>
                     <span className={`${styles.statusBadge} ${styles[`status_${event.status}`]}`}>{event.status}</span>
-                    <span className={styles.eventCategory}>{event.category}</span>
+                    <span className={styles.eventCategory}>{categoryLabel(event.category)}</span>
                   </div>
                   <div className={styles.eventActions}>
                     <select
