@@ -1,14 +1,20 @@
 .navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--space-2xl);
-  height: var(--navbar-height);
-  background: var(--bg-card);
+  background: var(--bg-primary);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-xl);
+  height: var(--navbar-height);
+  max-width: var(--max-content-width);
+  margin: 0 auto;
 }
 
 .logo {
@@ -16,80 +22,93 @@
   align-items: center;
   gap: var(--space-sm);
   text-decoration: none;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
 }
 
 .logoIcon {
-  width: 36px;
-  height: 36px;
-  background: var(--accent);
-  border-radius: var(--radius-md);
+  width: 32px;
+  height: 32px;
+  background: var(--gradient-brand);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-sm);
+}
+
+.logoText {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
 }
 
 .navLinks {
   display: flex;
   align-items: center;
-  gap: var(--space-2xl);
+  gap: 3rem;
 }
 
 .navLink {
-  color: var(--text-secondary);
+  position: relative;
+  color: var(--text-muted);
   text-decoration: none;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
-  padding-bottom: 2px;
-  border-bottom: 2px solid transparent;
-  transition: color var(--transition-fast), border-color var(--transition-fast);
+  padding-bottom: 6px;
+  transition: color var(--transition-fast);
 }
 
 .navLink:hover {
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 .navLinkActive {
   color: var(--text-primary);
-  border-bottom-color: var(--text-primary);
+}
+
+.navLinkActive::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -22px;
+  height: 2px;
+  background: var(--gradient-brand-horizontal);
 }
 
 .rightSection {
   display: flex;
   align-items: center;
-  gap: var(--space-lg);
+  gap: var(--space-md);
 }
 
 .balanceBadge {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-lg);
-  background: var(--bg-primary);
+  padding: 6px var(--space-md);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
   text-decoration: none;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
 .balanceBadge:hover {
-  border-color: var(--border-light);
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
 }
 
 .balanceIcon {
-  width: 32px;
-  height: 32px;
-  background: var(--green-accent);
+  width: 28px;
+  height: 28px;
+  background: var(--green-bg);
+  color: var(--green-accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-sm);
 }
 
 .balanceInfo {
@@ -99,9 +118,11 @@
 }
 
 .balanceLabel {
-  font-size: var(--font-size-xs);
+  font-size: 10px;
   color: var(--text-muted);
   line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .balanceAmount {
@@ -130,17 +151,17 @@
 
 .registerBtn {
   padding: var(--space-sm) var(--space-xl);
-  background: var(--accent);
+  background: var(--gradient-brand);
   color: #fff;
   border: none;
   border-radius: var(--radius-sm);
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
-  transition: background var(--transition-fast);
+  transition: filter var(--transition-fast);
 }
 
 .registerBtn:hover {
-  background: var(--accent-hover);
+  filter: brightness(1.1);
 }
 
 .notifBell {
@@ -152,15 +173,16 @@
   height: 38px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: var(--bg-primary);
+  background: var(--bg-card);
+  color: var(--text-secondary);
   text-decoration: none;
-  font-size: 18px;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
 }
 
 .notifBell:hover {
-  border-color: var(--border-light);
-  background: var(--bg-card);
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .unreadBadge {
@@ -169,7 +191,7 @@
   right: -4px;
   min-width: 18px;
   height: 18px;
-  background: #e53935;
+  background: var(--danger);
   color: #fff;
   border-radius: 9px;
   font-size: 10px;
