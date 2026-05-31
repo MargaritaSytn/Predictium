@@ -13,6 +13,7 @@ export interface User {
   wallet_balance: number;
   consecutive_login_days: number;
   last_login_date: string | null;
+  premium_end_date: string | null;
 }
 
 export interface ClaimBonusResponse {
@@ -115,7 +116,7 @@ export interface AuthResponse {
   user: User;
   access: string;
   refresh: string;
-  daily_bonus_granted?: boolean;
+  daily_bonus_available?: boolean;
 }
 
 export interface PaginatedResponse<T> {
@@ -173,6 +174,21 @@ export interface PlatformStats {
   revenue: { total_purchases_usd: number; total_withdrawals_usd: number; net_usd: number };
 }
 
+export interface FeedPrediction {
+  id: number;
+  user_id: number;
+  username: string;
+  event: number;
+  event_title: string;
+  selected_outcome: number;
+  outcome_label: string;
+  amount_tokens: number;
+  locked_coefficient: number;
+  prediction_status: string;
+  payout_amount: number;
+  created_at: string;
+}
+
 export interface CreateEventPayload {
   title: string;
   description: string;
@@ -182,3 +198,4 @@ export interface CreateEventPayload {
   status: string;
   outcomes: string[];
 }
+

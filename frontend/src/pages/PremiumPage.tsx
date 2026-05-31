@@ -8,13 +8,21 @@ import styles from "../styles/formPage.module.css";
 const PREMIUM_PRICE = 9.99;
 
 const PREMIUM_FEATURES = [
-  "AI-підказки для прогнозів (5 на день)",
-  "Розширена аналітика",
+  "AI-підказки для прогнозів (5 на день замість 2)",
+  "Розширена аналітика подій",
+  "Без комісії за виведення коштів",
   "Пріоритетна підтримка",
   "Ексклюзивні преміум-події",
-  "Без комісії за виведення",
   "Ранній доступ до нових функцій",
 ];
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("uk-UA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 export default function PremiumPage() {
   const { user } = useAuth();
@@ -44,8 +52,33 @@ export default function PremiumPage() {
         <p className={styles.subtitle}>Розблокуйте повний досвід Predictium</p>
 
         {user.premium_status ? (
-          <div className={styles.success} style={{ padding: "1rem", background: "var(--success-light)", borderRadius: "var(--radius-md)" }}>
-            У вас активна Преміум підписка!
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
+            <div style={{
+              padding: "var(--space-lg)",
+              background: "rgba(168, 85, 247, 0.1)",
+              border: "1px solid rgba(168, 85, 247, 0.3)",
+              borderRadius: "var(--radius-md)",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: "var(--font-size-lg)", fontWeight: "bold", color: "#c084fc", marginBottom: "var(--space-xs)" }}>
+                ✦ Преміум активний
+              </div>
+              {user.premium_end_date && (
+                <div style={{ fontSize: "var(--font-size-sm)", color: "var(--text-secondary)" }}>
+                  Діє до {formatDate(user.premium_end_date)}
+                </div>
+              )}
+            </div>
+
+            <div style={{ fontSize: "var(--font-size-sm)", color: "var(--text-secondary)" }}>
+              <strong style={{ color: "var(--text-primary)" }}>Ваші переваги:</strong>
+              {PREMIUM_FEATURES.map((f) => (
+                <div key={f} style={{ display: "flex", gap: "var(--space-sm)", padding: "6px 0", borderBottom: "1px solid var(--border)" }}>
+                  <span style={{ color: "#c084fc" }}>✓</span>
+                  <span>{f}</span>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <>
@@ -81,7 +114,7 @@ export default function PremiumPage() {
               fontSize: "var(--font-size-sm)",
               marginBottom: "var(--space-xl)",
             }}>
-              Щомісячна оплата через PayPal
+              30 днів · Щомісячна оплата через PayPal
             </p>
 
             {error && <p className={styles.error}>{error}</p>}
@@ -92,7 +125,7 @@ export default function PremiumPage() {
               disabled={loading}
               onClick={handlePurchase}
             >
-              {loading ? "Перенаправлення на PayPal..." : "Підписатися"}
+              {loading ? "Перенаправлення на PayPal..." : "Підписатися за $9.99"}
             </button>
           </>
         )}

@@ -18,7 +18,8 @@ import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/authService";
 import { predictionService } from "../services/predictionService";
 import { paymentService } from "../services/paymentService";
-import { Prediction, Transaction, User } from "../types";
+import { Link } from "react-router-dom";
+import { Prediction, FeedPrediction, Transaction, User } from "../types";
 import DonutChart from "../components/DonutChart";
 import Skeleton from "../components/Skeleton";
 import styles from "./ProfilePage.module.css";
@@ -45,6 +46,8 @@ export default function ProfilePage() {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [feed, setFeed] = useState<FeedPrediction[]>([]);
+  const [activeTab, setActiveTab] = useState<"my" | "feed">("my");
   const [claimingBonus, setClaimingBonus] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
 
@@ -55,6 +58,7 @@ export default function ProfilePage() {
       authService.getProfile().then((r) => setProfile(r.data)),
       predictionService.getMyPredictions().then((r) => setPredictions(r.data.results)).catch(() => {}),
       paymentService.getTransactions().then((r) => setTransactions(r.data.results)).catch(() => {}),
+      predictionService.getFriendsFeed().then((r) => setFeed(r.data)).catch(() => {}),
     ])
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -218,39 +222,95 @@ export default function ProfilePage() {
       </div>
 
       <div className={styles.historyCard}>
-        <h2 className={styles.historyTitle}>Історія прогнозів</h2>
-        {predictions.length === 0 ? (
-          <p className={styles.emptyState}>Ви ще не зробили жодного прогнозу.</p>
-        ) : (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Дата</th>
-                  <th>Подія</th>
-                  <th>Прогноз</th>
-                  <th>Ставка</th>
-                  <th>Результат</th>
-                  <th>Статус</th>
-                </tr>
-              </thead>
-              <tbody>
-                {predictions.map((p) => {
-                  const profit = (p.payout_amount || 0) - p.amount_tokens;
-                  const showProfit = p.prediction_status === "won" || p.prediction_status === "lost";
-                  return (
+        <div className={styles.tabRow}>
+          <button
+            className={`${styles.tab} ${activeTab === "my" ? styles.tabActive : ""}`}
+            onClick={() => setActiveTab("my")}
+          >
+            Мої прогнози
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === "feed" ? styles.tabActive : ""}`}
+            onClick={() => setActiveTab("feed")}
+          >
+            Стрічка підписок
+          </button>
+        </div>
+
+        {activeTab === "my" && (
+          predictions.length === 0 ? (
+            <p className={styles.emptyState}>Ви ще не зробили жодного прогнозу.</p>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Дата</th>
+                    <th>Подія</th>
+                    <th>Прогноз</th>
+                    <th>Ставка</th>
+                    <th>Результат</th>
+                    <th>Статус</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {predictions.map((p) => {
+                    const profit = (p.payout_amount || 0) - p.amount_tokens;
+                    const showProfit = p.prediction_status === "won" || p.prediction_status === "lost";
+                    return (
+                      <tr key={p.id}>
+                        <td>{new Date(p.created_at).toLocaleDateString("uk-UA")}</td>
+                        <td className={styles.eventCell}>{p.event_title}</td>
+                        <td><span className={styles.predictionBadge}>{p.outcome_label}</span></td>
+                        <td>{p.amount_tokens.toLocaleString()}</td>
+                        <td className={profit >= 0 ? styles.amountPositive : styles.amountNegative}>
+                          {showProfit ? `${profit >= 0 ? "+" : ""}${Math.round(profit).toLocaleString()}` : "—"}
+                        </td>
+                        <td>
+                          <span className={styles.statusCell}>
+                            {statusIcon(p.prediction_status)}
+                            {statusLabel(p.prediction_status)}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+
+        {activeTab === "feed" && (
+          feed.length === 0 ? (
+            <p className={styles.emptyState}>
+              Підпишіться на користувачів, щоб бачити їхні прогнози.
+            </p>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Дата</th>
+                    <th>Користувач</th>
+                    <th>Подія</th>
+                    <th>Прогноз</th>
+                    <th>Ставка</th>
+                    <th>Статус</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {feed.map((p) => (
                     <tr key={p.id}>
                       <td>{new Date(p.created_at).toLocaleDateString("uk-UA")}</td>
-                      <td className={styles.eventCell}>{p.event_title}</td>
                       <td>
-                        <span className={styles.predictionBadge}>{p.outcome_label}</span>
+                        <Link to={`/users/${p.user_id}`} className={styles.feedUser}>
+                          {p.username}
+                        </Link>
                       </td>
+                      <td className={styles.eventCell}>{p.event_title}</td>
+                      <td><span className={styles.predictionBadge}>{p.outcome_label}</span></td>
                       <td>{p.amount_tokens.toLocaleString()}</td>
-                      <td className={profit >= 0 ? styles.amountPositive : styles.amountNegative}>
-                        {showProfit
-                          ? `${profit >= 0 ? "+" : ""}${Math.round(profit).toLocaleString()}`
-                          : "—"}
-                      </td>
                       <td>
                         <span className={styles.statusCell}>
                           {statusIcon(p.prediction_status)}
@@ -258,11 +318,11 @@ export default function ProfilePage() {
                         </span>
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
         )}
       </div>
     </div>
