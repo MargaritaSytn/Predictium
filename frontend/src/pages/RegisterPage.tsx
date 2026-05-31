@@ -1,16 +1,25 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mail, Lock, User as UserIcon, Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { AxiosError } from "axios";
+import { useAuth } from "../context/AuthContext";
+import GoogleButton from "../components/auth/GoogleButton";
+import FacebookButton from "../components/auth/FacebookButton";
 import styles from "../styles/authPage.module.css";
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({ username: "", email: "", password: "", passwordConfirm: "" });
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    passwordConfirm: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -26,7 +35,25 @@ export default function RegisterPage() {
     } catch (err) {
       const axiosErr = err as AxiosError<Record<string, string[]>>;
       const data = axiosErr.response?.data;
-      setError(typeof data === "object" && data ? Object.values(data).flat().join(" ") : "Помилка реєстрації");
+      setError(
+        typeof data === "object" && data
+          ? Object.values(data).flat().join(" ")
+          : "Помилка реєстрації"
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (accessToken: string) => {
+    setError("");
+    setSubmitting(true);
+    try {
+      await loginWithGoogle(accessToken);
+      navigate("/");
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ detail?: string }>;
+      setError(axiosErr.response?.data?.detail || "Не вдалось увійти через Google");
     } finally {
       setSubmitting(false);
     }
@@ -34,96 +61,154 @@ export default function RegisterPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.card}>
-        <div className={styles.brand}>
-          <span className={styles.brandIcon}>P</span>
-          <span className={`${styles.brandText} gradient-text`}>Predictium</span>
-        </div>
-        <h1 className={styles.h1}>Створіть акаунт</h1>
-        <p className={styles.subtitle}>Реєстрація займає менше хвилини</p>
+      <div className={styles.shell}>
+        <div className={styles.glowBlue} />
+        <div className={styles.glowPurple} />
 
-        {error && <p className={styles.error}>{error}</p>}
+        <div className={styles.card}>
+          <h1 className={styles.heading}>Створити акаунт</h1>
+          <p className={styles.subtitle}>Приєднуйтесь до платформи Predictium</p>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Ім'я користувача</span>
-            <span className={styles.inputWrap}>
-              <UserIcon size={16} className={styles.fieldIcon} />
+          {error && <p className={styles.error}>{error}</p>}
+
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.field}>
+              <label className={styles.fieldLabel} htmlFor="reg-username">
+                Ім'я / Юзернейм
+              </label>
               <input
-                className={styles.input}
+                id="reg-username"
                 name="username"
-                placeholder="Ваш нік"
+                type="text"
+                className={styles.input}
+                placeholder="Predictor123"
                 value={form.username}
                 onChange={handleChange}
                 required
               />
-            </span>
-          </label>
+            </div>
 
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Email</span>
-            <span className={styles.inputWrap}>
-              <Mail size={16} className={styles.fieldIcon} />
+            <div className={styles.field}>
+              <label className={styles.fieldLabel} htmlFor="reg-email">
+                Email
+              </label>
               <input
-                className={styles.input}
+                id="reg-email"
                 name="email"
                 type="email"
-                placeholder="ви@example.com"
+                className={styles.input}
+                placeholder="your@email.com"
                 value={form.email}
                 onChange={handleChange}
                 required
               />
-            </span>
-          </label>
+            </div>
 
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Пароль</span>
-            <span className={styles.inputWrap}>
-              <Lock size={16} className={styles.fieldIcon} />
+            <div className={styles.grid2}>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="reg-password">
+                  Пароль
+                </label>
+                <div className={styles.inputWrap}>
+                  <input
+                    id="reg-password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    className={`${styles.input} ${styles.inputWithEye}`}
+                    placeholder="••••••••"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className={styles.eyeBtn}
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Сховати пароль" : "Показати пароль"}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="reg-password-confirm">
+                  Повторіть
+                </label>
+                <div className={styles.inputWrap}>
+                  <input
+                    id="reg-password-confirm"
+                    name="passwordConfirm"
+                    type={showConfirmPassword ? "text" : "password"}
+                    className={`${styles.input} ${styles.inputWithEye}`}
+                    placeholder="••••••••"
+                    value={form.passwordConfirm}
+                    onChange={handleChange}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className={styles.eyeBtn}
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    aria-label={
+                      showConfirmPassword ? "Сховати пароль" : "Показати пароль"
+                    }
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.termsRow}>
               <input
-                className={styles.input}
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Мінімум 8 символів"
-                value={form.password}
-                onChange={handleChange}
+                id="reg-terms"
+                type="checkbox"
+                className={styles.checkbox}
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
                 required
               />
-              <button
-                type="button"
-                className={styles.eyeBtn}
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Сховати пароль" : "Показати пароль"}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </span>
-          </label>
+              <label className={styles.termsText} htmlFor="reg-terms">
+                Я згоден з{" "}
+                <a href="#" onClick={(e) => e.preventDefault()}>
+                  Правилами користування
+                </a>{" "}
+                та{" "}
+                <a href="#" onClick={(e) => e.preventDefault()}>
+                  Політикою конфіденційності
+                </a>
+              </label>
+            </div>
 
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Підтвердити пароль</span>
-            <span className={styles.inputWrap}>
-              <Lock size={16} className={styles.fieldIcon} />
-              <input
-                className={styles.input}
-                name="passwordConfirm"
-                type={showPassword ? "text" : "password"}
-                placeholder="Повторіть пароль"
-                value={form.passwordConfirm}
-                onChange={handleChange}
-                required
-              />
-            </span>
-          </label>
+            <button
+              type="submit"
+              className={`${styles.submitBtn} ${styles.submitBtnRegister}`}
+              disabled={submitting}
+            >
+              {submitting ? "Створення..." : "Створити акаунт"}
+              <ArrowRight size={16} className={styles.submitArrow} />
+            </button>
+          </form>
 
-          <button type="submit" className={styles.btn} disabled={submitting}>
-            {submitting ? "Створення..." : "Створити акаунт"}
-          </button>
-        </form>
+          <div className={styles.dividerWrap}>
+            <div className={styles.dividerLine} />
+            <span className={styles.dividerText}>— або —</span>
+          </div>
 
-        <p className={styles.linkText}>
-          Вже є акаунт? <Link to="/login">Увійти</Link>
-        </p>
+          <div className={styles.socialColumn}>
+            <GoogleButton
+              onSuccess={handleGoogleSuccess}
+              onError={setError}
+              disabled={submitting}
+            />
+            <FacebookButton disabled={submitting} />
+          </div>
+
+          <p className={`${styles.footerLink} ${styles.footerLinkBlue}`}>
+            Вже є акаунт? <Link to="/login">Увійти</Link>
+          </p>
+        </div>
       </div>
     </div>
   );
