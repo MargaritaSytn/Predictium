@@ -86,6 +86,42 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun googleSignIn(idToken: String) {
+        viewModelScope.launch {
+            _authLoading.value = true
+            _loginError.value = null
+            authRepository.googleAuth(idToken)
+                .onSuccess {
+                    _isLoggedIn.value = true
+                    startUnreadPolling()
+                }
+                .onFailure { e ->
+                    _loginError.value = e.message ?: "Не вдалось увійти через Google"
+                }
+            _authLoading.value = false
+        }
+    }
+
+    fun facebookSignIn(accessToken: String) {
+        viewModelScope.launch {
+            _authLoading.value = true
+            _loginError.value = null
+            authRepository.facebookAuth(accessToken)
+                .onSuccess {
+                    _isLoggedIn.value = true
+                    startUnreadPolling()
+                }
+                .onFailure { e ->
+                    _loginError.value = e.message ?: "Не вдалось увійти через Facebook"
+                }
+            _authLoading.value = false
+        }
+    }
+
+    fun showAuthError(message: String) {
+        _loginError.value = message
+    }
+
     fun logout() {
         authRepository.logout()
         _isLoggedIn.value = false

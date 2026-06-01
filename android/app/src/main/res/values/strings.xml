@@ -3,4 +3,12 @@
     <string name="app_name">Predictium</string>
     <string name="notification_channel_name">Predictium Notifications</string>
     <string name="notification_channel_description">Event reminders, results, and updates</string>
+
+    <!-- Google Sign-In: Web client id used as serverClientId for Credential Manager -->
+    <string name="default_web_client_id">302790406526-4jr2ub1h3j3cv9cl83pk82fbvpmfsq8n.apps.googleusercontent.com</string>
+
+    <!-- Facebook Login -->
+    <string name="facebook_app_id">1481673440400050</string>
+    <string name="facebook_client_token">1b18d81c69a65e73454aa1f37ef297a4</string>
+    <string name="fb_login_protocol_scheme">fb1481673440400050</string>
 </resources>
