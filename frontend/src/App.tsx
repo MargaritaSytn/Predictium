@@ -18,6 +18,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import AdminPage from "./pages/AdminPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import PaymentResultPage from "./pages/PaymentResultPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
               <Route path="/admin/analytics" element={<AnalyticsPage />} />
               <Route path="/payment/success" element={<PaymentResultPage status="success" />} />
               <Route path="/payment/cancel" element={<PaymentResultPage status="cancel" />} />
+              <Route path="/privacy" element={<PrivacyPolicyPage />} />
             </Routes>
           </Layout>
         </BrowserRouter>

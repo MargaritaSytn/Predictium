@@ -19,7 +19,7 @@ export default function RegisterPage() {
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { register, loginWithGoogle } = useAuth();
+  const { register, loginWithGoogle, loginWithFacebook } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -54,6 +54,20 @@ export default function RegisterPage() {
     } catch (err) {
       const axiosErr = err as AxiosError<{ detail?: string }>;
       setError(axiosErr.response?.data?.detail || "Не вдалось увійти через Google");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleFacebookSuccess = async (accessToken: string) => {
+    setError("");
+    setSubmitting(true);
+    try {
+      await loginWithFacebook(accessToken);
+      navigate("/");
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ detail?: string }>;
+      setError(axiosErr.response?.data?.detail || "Не вдалось увійти через Facebook");
     } finally {
       setSubmitting(false);
     }
@@ -202,7 +216,11 @@ export default function RegisterPage() {
               onError={setError}
               disabled={submitting}
             />
-            <FacebookButton disabled={submitting} />
+            <FacebookButton
+              onSuccess={handleFacebookSuccess}
+              onError={setError}
+              disabled={submitting}
+            />
           </div>
 
           <p className={`${styles.footerLink} ${styles.footerLinkBlue}`}>
