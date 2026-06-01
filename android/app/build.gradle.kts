@@ -32,7 +32,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"https://predictium.com/api\"")
+            buildConfigField("String", "BASE_URL", "\"https://predictium-backend.onrender.com/api\"")
         }
     }
 

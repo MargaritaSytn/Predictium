@@ -64,7 +64,7 @@ object AppModule {
         moshi: Moshi,
         @Named("baseUrl") baseUrl: String
     ): Retrofit = Retrofit.Builder()
-        .baseUrl("$baseUrl/")
+        .baseUrl("${baseUrl.trimEnd('/')}/")
         .client(okHttpClient)
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .build()

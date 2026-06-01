@@ -51,7 +51,7 @@ class TokenRefreshAuthenticator @Inject constructor(
                 .toRequestBody("application/json".toMediaType())
 
             val refreshRequest = Request.Builder()
-                .url("$baseUrl/auth/token/refresh/")
+                .url("${baseUrl.trimEnd('/')}/auth/token/refresh/")
                 .post(body)
                 .build()
 
