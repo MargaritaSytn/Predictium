@@ -44,6 +44,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     total_predictions = serializers.SerializerMethodField()
     won_predictions = serializers.SerializerMethodField()
     success_rate = serializers.SerializerMethodField()
+    premium_end_date = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -51,9 +52,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "id", "username", "email", "token_balance", "premium_status", "is_staff",
             "registration_date", "bio", "success_rate", "won_predictions",
             "total_predictions", "wallet_balance",
-            "consecutive_login_days", "last_login_date",
+            "consecutive_login_days", "last_login_date", "premium_end_date",
         )
         read_only_fields = fields
+
+    def get_premium_end_date(self, obj):
+        sub = getattr(obj, "premium_subscription", None)
+        if sub and obj.premium_status:
+            return sub.end_date
+        return None
 
     def get_total_predictions(self, obj):
         return obj.predictions.count()

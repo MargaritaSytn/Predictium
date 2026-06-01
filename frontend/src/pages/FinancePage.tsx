@@ -168,6 +168,11 @@ export default function FinancePage() {
             <Link to="/withdraw" className={styles.btnWithdraw}>
               <ArrowDownLeft size={16} /> Вивести кошти
             </Link>
+            {!user.premium_status && (
+              <Link to="/premium" className={styles.btnPremium}>
+                <Star size={16} /> Преміум
+              </Link>
+            )}
           </div>
         </div>
 
@@ -214,14 +219,18 @@ export default function FinancePage() {
         </div>
       </div>
 
-      <div className={styles.infoBanner}>
+      <div className={styles.infoBanner} style={user.premium_status ? { borderColor: "rgba(168,85,247,0.3)", background: "rgba(168,85,247,0.06)" } : {}}>
         <span className={styles.infoBannerIcon}>
-          <AlertTriangle size={18} />
+          {user.premium_status ? <Star size={18} style={{ color: "#c084fc" }} /> : <AlertTriangle size={18} />}
         </span>
         <div>
-          <div className={styles.infoBannerTitle}>Важлива інформація</div>
+          <div className={styles.infoBannerTitle}>
+            {user.premium_status ? "Преміум активний — комісія 0%" : "Важлива інформація"}
+          </div>
           <div className={styles.infoBannerText}>
-            При виведенні коштів стягується сервісна комісія 3%. Мінімальна сума для виведення — 1000 токенів.
+            {user.premium_status
+              ? "Ви виводите кошти без комісії. Мінімальна сума для виведення — 100 токенів."
+              : "При виведенні коштів стягується сервісна комісія 3%. Мінімальна сума для виведення — 100 токенів."}
           </div>
         </div>
       </div>

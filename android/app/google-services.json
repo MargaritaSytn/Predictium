@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "302790406526",
+    "project_id": "predictium-mobile",
+    "storage_bucket": "predictium-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:302790406526:android:cceaaa265e78403240032f",
+        "android_client_info": {
+          "package_name": "com.predictium.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "302790406526-4jr2ub1h3j3cv9cl83pk82fbvpmfsq8n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDh5-Tf2_6vY2GbFKyqCZU_iJbtg4PXYLM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "302790406526-4jr2ub1h3j3cv9cl83pk82fbvpmfsq8n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

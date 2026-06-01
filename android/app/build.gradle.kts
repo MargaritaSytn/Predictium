@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +10,18 @@ plugins {
     alias(libs.plugins.google.services)
 }
 
+// Release signing config is loaded from android/keystore.properties (gitignored).
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
+// Version is overridable from the command line:
+//   ./gradlew assembleRelease -PappVersionName=2.1.0-develop.14 -PappVersionCode=14
+val appVersionName = (project.findProperty("appVersionName") as String?) ?: "2.1.0"
+val appVersionCode = (project.findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 1
+
 android {
     namespace = "com.predictium.android"
     compileSdk = 35
@@ -15,10 +30,21 @@ android {
         applicationId = "com.predictium.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -32,7 +58,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"https://predictium.com/api\"")
+            buildConfigField("String", "BASE_URL", "\"https://predictium-backend.onrender.com/api\"")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -98,6 +125,7 @@ dependencies {
     // Credentials (Google Sign-In)
     implementation(libs.credentials)
     implementation(libs.credentials.play)
+    implementation(libs.googleid)
 
     // Facebook
     implementation(libs.facebook.login)

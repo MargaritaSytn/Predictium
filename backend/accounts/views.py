@@ -2,6 +2,8 @@ import logging
 import urllib.request
 import json
 
+import requests
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum, Avg
@@ -23,6 +25,17 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
+
+
+def _expire_premium_if_needed(user):
+    if not user.premium_status:
+        return
+    sub = getattr(user, "premium_subscription", None)
+    if sub and sub.end_date < timezone.now():
+        user.premium_status = False
+        user.save(update_fields=["premium_status"])
+        sub.status = "expired"
+        sub.save(update_fields=["status"])
 
 
 class RegisterView(generics.CreateAPIView):
@@ -82,15 +95,15 @@ class LoginView(APIView):
         password = serializer.validated_data["password"]
         user = User.objects.filter(email=email).first()
         if user and user.check_password(password):
-            bonus_granted = _grant_daily_bonus(user)
-            user.refresh_from_db()
+            _expire_premium_if_needed(user)
             request.session["login_count"] = request.session.get("login_count", 0) + 1
             refresh = RefreshToken.for_user(user)
+            today = timezone.now().date()
             return Response({
                 "user": UserProfileSerializer(user).data,
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
-                "daily_bonus_granted": bonus_granted,
+                "daily_bonus_available": user.last_login_date != today,
             })
         return Response(
             {"detail": "Invalid credentials."},
@@ -103,6 +116,7 @@ class ProfileView(generics.RetrieveAPIView):
     serializer_class = UserProfileSerializer
 
     def get_object(self):
+        _expire_premium_if_needed(self.request.user)
         return self.request.user
 
 
@@ -262,66 +276,90 @@ class AdminUserDetailView(generics.RetrieveAPIView):
 
 def _social_auth_response(user):
     """Generate JWT tokens and profile for a social-authenticated user."""
-    bonus_granted = _grant_daily_bonus(user)
-    user.refresh_from_db()
     refresh = RefreshToken.for_user(user)
+    today = timezone.now().date()
     return Response({
         "user": UserProfileSerializer(user).data,
         "access": str(refresh.access_token),
         "refresh": str(refresh),
-        "daily_bonus_granted": bonus_granted,
+        "daily_bonus_available": user.last_login_date != today,
     })
 
 
+def _get_or_create_social_user(email, display_name):
+    """Find a user by email, or create one with a unique username."""
+    user = User.objects.filter(email=email).first()
+    if user:
+        return user
+    username = display_name or email.split("@")[0]
+    base_username = username
+    counter = 1
+    while User.objects.filter(username=username).exists():
+        username = f"{base_username}{counter}"
+        counter += 1
+    return User.objects.create_user(username=username, email=email, password=None)
+
+
 class GoogleAuthView(APIView):
-    """Verify Google ID token and return JWT credentials."""
+    """Authenticate via Google.
+
+    Accepts either:
+      - access_token (web / implicit flow) — verified via the userinfo endpoint;
+      - id_token (Android Credential Manager) — verified via Google's library,
+        checking the audience equals our web client id.
+    """
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        id_token = request.data.get("id_token", "").strip()
-        if not id_token:
+        id_token_value = request.data.get("id_token", "").strip()
+        access_token = request.data.get("access_token", "").strip()
+
+        if id_token_value:
+            email, name = self._verify_id_token(id_token_value)
+        elif access_token:
+            email, name = self._verify_access_token(access_token)
+        else:
             return Response(
-                {"detail": "id_token is required."},
+                {"detail": "id_token or access_token is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            from google.oauth2 import id_token as google_id_token
-            from google.auth.transport import requests as google_requests
-
-            client_id = getattr(settings, "GOOGLE_ANDROID_CLIENT_ID", None) or getattr(settings, "GOOGLE_CLIENT_ID", "")
-            idinfo = google_id_token.verify_oauth2_token(
-                id_token, google_requests.Request(), client_id
-            )
-        except Exception as exc:
-            logger.warning("Google token verification failed: %s", exc)
+        if not email:
             return Response(
                 {"detail": "Invalid Google token."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        email = idinfo.get("email")
-        if not email:
-            return Response(
-                {"detail": "Google account has no email."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user = User.objects.filter(email=email).first()
-        if not user:
-            username = idinfo.get("name", email.split("@")[0])
-            base_username = username
-            counter = 1
-            while User.objects.filter(username=username).exists():
-                username = f"{base_username}{counter}"
-                counter += 1
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=None,
-            )
-
+        user = _get_or_create_social_user(email, name)
         return _social_auth_response(user)
+
+    def _verify_id_token(self, token):
+        try:
+            from google.oauth2 import id_token as google_id_token
+            from google.auth.transport import requests as google_requests
+            info = google_id_token.verify_oauth2_token(
+                token,
+                google_requests.Request(),
+                settings.GOOGLE_OAUTH_WEB_CLIENT_ID or None,
+            )
+        except Exception as exc:
+            logger.warning("Google id_token verification failed: %s", exc)
+            return None, None
+        return info.get("email"), info.get("name")
+
+    def _verify_access_token(self, access_token):
+        try:
+            resp = requests.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            userinfo = resp.json()
+        except (requests.RequestException, ValueError) as exc:
+            logger.warning("Google userinfo failed: %s", exc)
+            return None, None
+        return userinfo.get("email"), userinfo.get("name")
 
 
 class FacebookAuthView(APIView):
@@ -370,3 +408,4 @@ class FacebookAuthView(APIView):
             )
 
         return _social_auth_response(user)
+

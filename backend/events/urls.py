@@ -5,12 +5,14 @@ from .views import (
     PendingReviewsView, ApproveReviewView, RejectReviewView,
     AdminEventListCreateView, AdminEventDetailView,
     AdminAddOutcomeView, AdminDeleteOutcomeView,
+    EventICalView,
 )
 
 urlpatterns = [
     path("", EventListView.as_view(), name="event-list"),
     path("top/", TopEventsView.as_view(), name="top-events"),
     path("<int:pk>/", EventDetailView.as_view(), name="event-detail"),
+    path("<int:pk>/ical/", EventICalView.as_view(), name="event-ical"),
     path("<int:event_id>/reviews/", EventReviewListView.as_view(), name="event-reviews"),
     path("<int:event_id>/reviews/create/", CreateReviewView.as_view(), name="create-review"),
     path("moderation/reviews/", PendingReviewsView.as_view(), name="pending-reviews"),

@@ -24,7 +24,7 @@ if not _secret_key:
         raise ImproperlyConfigured("SECRET_KEY environment variable must be set in production")
 SECRET_KEY = _secret_key
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,10.0.2.2").split(",")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -138,8 +138,16 @@ SITE_ID = 1
 _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173")
 CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
 
+# CSRF trusted origins (needed for Django admin / allauth login over HTTPS in prod)
+_csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(",") if o.strip()]
+
 # Production security settings (active when DEBUG=False)
 if not DEBUG:
+    # Render (and most PaaS) terminate TLS at the proxy and forward plain HTTP
+    # with X-Forwarded-Proto. Without this header Django sees HTTP and the
+    # SECURE_SSL_REDIRECT below causes an infinite redirect loop.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -211,6 +219,10 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
+# Audience for verifying Google ID tokens sent by the Android app
+# (Credential Manager issues an ID token whose `aud` is the web client id).
+GOOGLE_OAUTH_WEB_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+
 # PayPal
 PAYPAL_MODE = os.getenv("PAYPAL_MODE", "sandbox")
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
@@ -225,7 +237,11 @@ MIN_WITHDRAWAL_TOKENS = 100
 PREMIUM_PRICE_USD = 9.99
 PREMIUM_DURATION_DAYS = 30
 
-# Anthropic AI
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-AI_HINT_FREE_LIMIT = int(os.getenv("AI_HINT_FREE_LIMIT", "1"))
+# Google Gemini (free tier) — used for AI prediction hints
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+AI_HINT_MODEL = os.getenv("AI_HINT_MODEL", "gemini-2.0-flash")
+AI_HINT_FREE_LIMIT = int(os.getenv("AI_HINT_FREE_LIMIT", "2"))
 AI_HINT_PREMIUM_LIMIT = int(os.getenv("AI_HINT_PREMIUM_LIMIT", "5"))
+
+# Firebase Admin SDK — used for FCM push notifications (Android)
+FIREBASE_CREDENTIALS_PATH = os.getenv("FIREBASE_CREDENTIALS_PATH", "")

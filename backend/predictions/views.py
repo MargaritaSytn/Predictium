@@ -2,9 +2,9 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
-from core.models import Prediction
+from core.models import Prediction, Follow
 from core.throttles import PredictionRateThrottle
-from .serializers import PlacePredictionSerializer, PredictionSerializer, ResolveEventSerializer
+from .serializers import PlacePredictionSerializer, PredictionSerializer, FeedPredictionSerializer, ResolveEventSerializer
 from .services import place_prediction, resolve_event, PredictionError
 
 
@@ -41,6 +41,22 @@ class UserPredictionsView(generics.ListAPIView):
         return Prediction.objects.filter(
             user=self.request.user
         ).select_related("event", "selected_outcome").order_by("-created_at")
+
+
+class FriendsFeedView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = FeedPredictionSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        following_ids = Follow.objects.filter(
+            follower=self.request.user
+        ).values_list("following_id", flat=True)
+        return (
+            Prediction.objects.filter(user_id__in=following_ids)
+            .select_related("user", "event", "selected_outcome")
+            .order_by("-created_at")[:50]
+        )
 
 
 class ResolveEventView(APIView):
