@@ -7,6 +7,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<AuthResponse>;
   loginWithGoogle: (accessToken: string) => Promise<AuthResponse>;
+  loginWithFacebook: (accessToken: string) => Promise<AuthResponse>;
   register: (username: string, email: string, password: string, passwordConfirm: string) => Promise<AuthResponse>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -49,6 +50,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.data;
   };
 
+  const loginWithFacebook = async (accessToken: string) => {
+    const res = await api.post<AuthResponse>("/auth/facebook/", { access_token: accessToken });
+    localStorage.setItem("access_token", res.data.access);
+    localStorage.setItem("refresh_token", res.data.refresh);
+    setUser(res.data.user);
+    return res.data;
+  };
+
   const register = async (username: string, email: string, password: string, passwordConfirm: string) => {
     const res = await api.post<AuthResponse>("/auth/register/", {
       username, email, password, password_confirm: passwordConfirm,
@@ -71,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, loginWithFacebook, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

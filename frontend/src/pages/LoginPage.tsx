@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, loginWithFacebook } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
@@ -41,6 +41,20 @@ export default function LoginPage() {
     } catch (err) {
       const axiosErr = err as AxiosError<{ detail?: string }>;
       setError(axiosErr.response?.data?.detail || "Не вдалось увійти через Google");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleFacebookSuccess = async (accessToken: string) => {
+    setError("");
+    setSubmitting(true);
+    try {
+      await loginWithFacebook(accessToken);
+      navigate("/");
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ detail?: string }>;
+      setError(axiosErr.response?.data?.detail || "Не вдалось увійти через Facebook");
     } finally {
       setSubmitting(false);
     }
@@ -144,7 +158,11 @@ export default function LoginPage() {
               onError={setError}
               disabled={submitting}
             />
-            <FacebookButton disabled={submitting} />
+            <FacebookButton
+              onSuccess={handleFacebookSuccess}
+              onError={setError}
+              disabled={submitting}
+            />
           </div>
 
           <p className={styles.footerLink}>
