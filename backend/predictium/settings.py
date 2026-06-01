@@ -219,6 +219,10 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
+# Audience for verifying Google ID tokens sent by the Android app
+# (Credential Manager issues an ID token whose `aud` is the web client id).
+GOOGLE_OAUTH_WEB_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+
 # PayPal
 PAYPAL_MODE = os.getenv("PAYPAL_MODE", "sandbox")
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")

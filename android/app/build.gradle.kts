@@ -44,7 +44,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8000/api\"")
+            buildConfigField("String", "BASE_URL", "\"https://predictium-backend.onrender.com/api\"")
         }
         release {
             isMinifyEnabled = true
@@ -120,6 +120,7 @@ dependencies {
     // Credentials (Google Sign-In)
     implementation(libs.credentials)
     implementation(libs.credentials.play)
+    implementation(libs.googleid)
 
     // Facebook
     implementation(libs.facebook.login)

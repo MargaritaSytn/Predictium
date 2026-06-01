@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.predictium.android.ui.auth.social.SocialLoginButtons
 
 @Composable
 fun LoginScreen(
@@ -126,6 +127,13 @@ fun LoginScreen(
                     Text("Увійти", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
+
+            SocialLoginButtons(
+                enabled = !authLoading,
+                onGoogleToken = viewModel::googleSignIn,
+                onFacebookToken = viewModel::facebookSignIn,
+                onError = viewModel::showAuthError,
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

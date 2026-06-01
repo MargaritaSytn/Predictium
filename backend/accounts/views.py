@@ -286,18 +286,68 @@ def _social_auth_response(user):
     })
 
 
+def _get_or_create_social_user(email, display_name):
+    """Find a user by email, or create one with a unique username."""
+    user = User.objects.filter(email=email).first()
+    if user:
+        return user
+    username = display_name or email.split("@")[0]
+    base_username = username
+    counter = 1
+    while User.objects.filter(username=username).exists():
+        username = f"{base_username}{counter}"
+        counter += 1
+    return User.objects.create_user(username=username, email=email, password=None)
+
+
 class GoogleAuthView(APIView):
-    """Verify Google access_token via userinfo endpoint and return JWT credentials."""
+    """Authenticate via Google.
+
+    Accepts either:
+      - access_token (web / implicit flow) — verified via the userinfo endpoint;
+      - id_token (Android Credential Manager) — verified via Google's library,
+        checking the audience equals our web client id.
+    """
     permission_classes = (AllowAny,)
 
     def post(self, request):
+        id_token_value = request.data.get("id_token", "").strip()
         access_token = request.data.get("access_token", "").strip()
-        if not access_token:
+
+        if id_token_value:
+            email, name = self._verify_id_token(id_token_value)
+        elif access_token:
+            email, name = self._verify_access_token(access_token)
+        else:
             return Response(
-                {"detail": "access_token is required."},
+                {"detail": "id_token or access_token is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if not email:
+            return Response(
+                {"detail": "Invalid Google token."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = _get_or_create_social_user(email, name)
+        return _social_auth_response(user)
+
+    def _verify_id_token(self, token):
+        try:
+            from google.oauth2 import id_token as google_id_token
+            from google.auth.transport import requests as google_requests
+            info = google_id_token.verify_oauth2_token(
+                token,
+                google_requests.Request(),
+                settings.GOOGLE_OAUTH_WEB_CLIENT_ID or None,
+            )
+        except Exception as exc:
+            logger.warning("Google id_token verification failed: %s", exc)
+            return None, None
+        return info.get("email"), info.get("name")
+
+    def _verify_access_token(self, access_token):
         try:
             resp = requests.get(
                 "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -308,33 +358,8 @@ class GoogleAuthView(APIView):
             userinfo = resp.json()
         except (requests.RequestException, ValueError) as exc:
             logger.warning("Google userinfo failed: %s", exc)
-            return Response(
-                {"detail": "Invalid Google token."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        email = userinfo.get("email")
-        if not email:
-            return Response(
-                {"detail": "Google account has no email."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user = User.objects.filter(email=email).first()
-        if not user:
-            username = userinfo.get("name", email.split("@")[0])
-            base_username = username
-            counter = 1
-            while User.objects.filter(username=username).exists():
-                username = f"{base_username}{counter}"
-                counter += 1
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=None,
-            )
-
-        return _social_auth_response(user)
+            return None, None
+        return userinfo.get("email"), userinfo.get("name")
 
 
 class FacebookAuthView(APIView):

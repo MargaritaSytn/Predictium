@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.predictium.android.ui.auth.social.SocialLoginButtons
 
 @Composable
 fun RegisterScreen(
@@ -23,6 +24,7 @@ fun RegisterScreen(
 ) {
     val authLoading by viewModel.authLoading.collectAsState()
     val registerError by viewModel.registerError.collectAsState()
+    val socialError by viewModel.loginError.collectAsState()
 
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -34,6 +36,12 @@ fun RegisterScreen(
         registerError?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearRegisterError()
+        }
+    }
+    LaunchedEffect(socialError) {
+        socialError?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearLoginError()
         }
     }
 
@@ -162,6 +170,13 @@ fun RegisterScreen(
                     Text("Зареєструватись", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
+
+            SocialLoginButtons(
+                enabled = !authLoading,
+                onGoogleToken = viewModel::googleSignIn,
+                onFacebookToken = viewModel::facebookSignIn,
+                onError = viewModel::showAuthError,
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
