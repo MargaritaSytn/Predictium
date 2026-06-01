@@ -238,9 +238,21 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
+  min-height: 200px;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: var(--space-sm);
+}
+
+.statBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-xs);
 }
 
 .statHeader {
@@ -256,7 +268,7 @@
 }
 
 .statValue {
-  font-size: 28px;
+  font-size: 48px;
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   line-height: 1.1;
@@ -283,8 +295,9 @@
 .donutLegend {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 4px;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 

@@ -19,7 +19,7 @@ export default function Footer() {
 
   const legalLinks = [
     { label: "Умови користування", path: "#" },
-    { label: "Політика конфіденційності", path: "#" },
+    { label: "Політика конфіденційності", path: "https://predictium-frontend.onrender.com/privacy" },
     { label: "Правила прогнозів", path: "#" },
   ];
 
