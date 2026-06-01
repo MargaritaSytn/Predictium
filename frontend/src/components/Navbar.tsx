@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
-import { Bell, Coins } from "lucide-react";
+import { Bell, Coins, Download } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { notificationService } from "../services/notificationService";
 import styles from "./Navbar.module.css";
@@ -59,6 +59,15 @@ export default function Navbar() {
         <div className={styles.rightSection}>
           {user ? (
             <>
+              <a
+                href="/Predictium.apk"
+                download="Predictium.apk"
+                className={styles.notifBell}
+                aria-label="Завантажити Android APK"
+                title="Завантажити Android APK"
+              >
+                <Download size={18} strokeWidth={1.75} />
+              </a>
               <NavLink to="/notifications" className={styles.notifBell} aria-label="Сповіщення">
                 <Bell size={18} strokeWidth={1.75} />
                 {unreadCount > 0 && (
