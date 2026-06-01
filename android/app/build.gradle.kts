@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +8,13 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.google.services)
+}
+
+// Release signing config is loaded from android/keystore.properties (gitignored).
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -21,9 +31,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8000/api\"")
+            buildConfigField("String", "BASE_URL", "\"https://predictium-backend.onrender.com/api\"")
         }
         release {
             isMinifyEnabled = true
@@ -33,6 +54,7 @@ android {
                 "proguard-rules.pro"
             )
             buildConfigField("String", "BASE_URL", "\"https://predictium-backend.onrender.com/api\"")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -98,6 +120,7 @@ dependencies {
     // Credentials (Google Sign-In)
     implementation(libs.credentials)
     implementation(libs.credentials.play)
+    implementation(libs.googleid)
 
     // Facebook
     implementation(libs.facebook.login)
