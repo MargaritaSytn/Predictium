@@ -179,12 +179,14 @@ export default function ProfilePage() {
             <Target size={16} className={styles.statHeaderIcon} />
             <span>Win Rate</span>
           </div>
-          <div className={styles.donutWrap}>
-            <DonutChart percentage={successPercent} size={120} />
-          </div>
-          <div className={styles.donutLegend}>
-            <span><span className={`${styles.dot} ${styles.dotWon}`} /> {profile.won_predictions} виграних</span>
-            <span><span className={`${styles.dot} ${styles.dotLost}`} /> {lostPredictions} програшних</span>
+          <div className={styles.statBody}>
+            <div className={styles.donutWrap}>
+              <DonutChart percentage={successPercent} size={120} />
+            </div>
+            <div className={styles.donutLegend}>
+              <span><span className={`${styles.dot} ${styles.dotWon}`} /> {profile.won_predictions} виграних</span>
+              <span><span className={`${styles.dot} ${styles.dotLost}`} /> {lostPredictions} програшних</span>
+            </div>
           </div>
         </div>
 
@@ -193,13 +195,15 @@ export default function ProfilePage() {
             <TrendingUp size={16} className={styles.statHeaderIcon} />
             <span>Сумарний прибуток</span>
           </div>
-          <div
-            className={styles.statValue}
-            style={{ color: totalProfit >= 0 ? "var(--success)" : "var(--danger)" }}
-          >
-            {totalProfit >= 0 ? "+" : ""}{Math.round(totalProfit).toLocaleString()}
+          <div className={styles.statBody}>
+            <div
+              className={styles.statValue}
+              style={{ color: totalProfit >= 0 ? "var(--success)" : "var(--danger)" }}
+            >
+              {totalProfit >= 0 ? "+" : ""}{Math.round(totalProfit).toLocaleString()}
+            </div>
+            <div className={styles.statSub}>токенів за весь час</div>
           </div>
-          <div className={styles.statSub}>токенів за весь час</div>
         </div>
 
         <div className={styles.statCard}>
@@ -207,8 +211,10 @@ export default function ProfilePage() {
             <Target size={16} className={styles.statHeaderIcon} />
             <span>Всього прогнозів</span>
           </div>
-          <div className={styles.statValue}>{profile.total_predictions}</div>
-          <div className={styles.statSub}>Активних: {activePredictions}</div>
+          <div className={styles.statBody}>
+            <div className={styles.statValue}>{profile.total_predictions}</div>
+            <div className={styles.statSub}>Активних: {activePredictions}</div>
+          </div>
         </div>
 
         <div className={styles.statCard}>
@@ -216,8 +222,10 @@ export default function ProfilePage() {
             <Zap size={16} className={styles.statHeaderIcon} style={{ color: "var(--accent)" }} />
             <span>Серія входів</span>
           </div>
-          <div className={`${styles.statValue} ${styles.statValueAccent}`}>{streak}</div>
-          <div className={styles.statSub}>днів поспіль</div>
+          <div className={styles.statBody}>
+            <div className={`${styles.statValue} ${styles.statValueAccent}`}>{streak}</div>
+            <div className={styles.statSub}>днів поспіль</div>
+          </div>
         </div>
       </div>
 

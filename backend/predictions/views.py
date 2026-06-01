@@ -46,6 +46,7 @@ class UserPredictionsView(generics.ListAPIView):
 class FriendsFeedView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = FeedPredictionSerializer
+    pagination_class = None
 
     def get_queryset(self):
         following_ids = Follow.objects.filter(
