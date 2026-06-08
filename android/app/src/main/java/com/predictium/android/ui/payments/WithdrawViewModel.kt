@@ -29,17 +29,19 @@ class WithdrawViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    fun withdraw(amount: Int) {
+    fun withdraw(amount: Int, paypalEmail: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
-            paymentRepository.withdraw(amount)
+            paymentRepository.withdraw(amount, paypalEmail)
                 .onSuccess { response ->
-                    val msg = response.detail ?: "Withdrawal submitted: ${response.amountTokens} tokens, fee: ${response.fee}, net: $${response.netUsd}"
+                    val msg = "Виведення успішне! " +
+                        "${response.tokensWithdrawn ?: amount} токенів → " +
+                        "$${"%.2f".format(response.usdAmount ?: 0.0)} USD"
                     _success.value = msg
                     authRepository.loadProfile()
                 }
-                .onFailure { _error.value = it.message ?: "Withdrawal failed" }
+                .onFailure { _error.value = it.message ?: "Помилка виводу" }
             _isLoading.value = false
         }
     }

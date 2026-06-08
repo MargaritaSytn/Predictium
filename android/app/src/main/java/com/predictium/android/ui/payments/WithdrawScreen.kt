@@ -28,9 +28,17 @@ fun WithdrawScreen(
     val success by viewModel.success.collectAsState()
 
     var amount by remember { mutableStateOf("") }
+    var paypalEmail by remember { mutableStateOf("") }
+
     val amountInt = amount.toIntOrNull() ?: 0
     val fee = (amountInt * WithdrawViewModel.FEE_RATE).toInt()
     val netUsd = (amountInt - fee) * WithdrawViewModel.TOKEN_PRICE
+
+    val isEmailValid = paypalEmail.contains("@") && paypalEmail.contains(".")
+    val canSubmit = !isLoading
+            && amountInt >= WithdrawViewModel.MIN_WITHDRAWAL
+            && amountInt <= (user?.walletBalance ?: 0)
+            && isEmailValid
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -46,6 +54,7 @@ fun WithdrawScreen(
             snackbarHostState.showSnackbar(it)
             viewModel.clearSuccess()
             amount = ""
+            paypalEmail = ""
         }
     }
 
@@ -54,7 +63,7 @@ fun WithdrawScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Withdraw") },
+                title = { Text("Вивід токенів") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -72,7 +81,7 @@ fun WithdrawScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Available: ${user?.walletBalance ?: 0} tokens",
+                "Доступно: ${user?.walletBalance ?: 0} токенів",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -81,9 +90,24 @@ fun WithdrawScreen(
             OutlinedTextField(
                 value = amount,
                 onValueChange = { amount = it.filter { c -> c.isDigit() } },
-                label = { Text("Amount (min ${WithdrawViewModel.MIN_WITHDRAWAL})") },
+                label = { Text("Кількість (мін ${WithdrawViewModel.MIN_WITHDRAWAL})") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = paypalEmail,
+                onValueChange = { paypalEmail = it.trim() },
+                label = { Text("PayPal email") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                singleLine = true,
+                isError = paypalEmail.isNotEmpty() && !isEmailValid,
+                supportingText = {
+                    if (paypalEmail.isNotEmpty() && !isEmailValid) {
+                        Text("Введіть коректний email")
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -96,32 +120,57 @@ fun WithdrawScreen(
                         .padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("Amount:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("$amountInt tokens", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Кількість:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("$amountInt токенів", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                     }
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("Fee (3%):", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("$fee tokens", fontSize = 14.sp, color = MaterialTheme.colorScheme.error)
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Комісія (3%):", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("$fee токенів", fontSize = 14.sp, color = MaterialTheme.colorScheme.error)
                     }
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("You receive:", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("$${"%.2f".format(netUsd)} USD", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "Отримаєш:",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            "$${"%.2f".format(netUsd)} USD",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
 
             Button(
-                onClick = { viewModel.withdraw(amountInt) },
-                enabled = !isLoading && amountInt >= WithdrawViewModel.MIN_WITHDRAWAL && amountInt <= (user?.walletBalance ?: 0),
-                modifier = Modifier.fillMaxWidth().height(48.dp),
+                onClick = { viewModel.withdraw(amountInt, paypalEmail) },
+                enabled = canSubmit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
                 } else {
-                    Text("Withdraw via PayPal", fontWeight = FontWeight.SemiBold)
+                    Text("Вивести через PayPal", fontWeight = FontWeight.SemiBold)
                 }
             }
         }

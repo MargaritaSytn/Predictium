@@ -26,17 +26,19 @@ data class ExecutePurchaseRequest(
 
 @JsonClass(generateAdapter = true)
 data class WithdrawRequest(
-    @Json(name = "token_amount") val tokenAmount: Int
+    @Json(name = "token_amount") val tokenAmount: Int,
+    @Json(name = "paypal_email") val paypalEmail: String,
 )
 
 @JsonClass(generateAdapter = true)
 data class WithdrawResponse(
-    @Json(name = "withdrawal_id") val withdrawalId: Int? = null,
-    val status: String? = null,
-    @Json(name = "amount_tokens") val amountTokens: Int? = null,
-    val fee: Int? = null,
-    @Json(name = "net_usd") val netUsd: Double? = null,
-    val detail: String? = null
+    @Json(name = "transaction_id") val transactionId: Int? = null,
+    @Json(name = "tokens_withdrawn") val tokensWithdrawn: Int? = null,
+    @Json(name = "fee_tokens") val feeTokens: Int? = null,
+    @Json(name = "net_tokens") val netTokens: Int? = null,
+    @Json(name = "usd_amount") val usdAmount: Double? = null,
+    @Json(name = "batch_status") val batchStatus: String? = null,
+    val detail: String? = null,
 )
 
 @JsonClass(generateAdapter = true)
