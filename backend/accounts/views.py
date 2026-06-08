@@ -7,6 +7,8 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum, Avg
+from django.db.models.functions import TruncDate
+from datetime import timedelta
 from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
@@ -212,11 +214,19 @@ class ReportListView(generics.ListAPIView):
 
 # ── Admin Analytics ───────────────────────────────────────────────────────────
 
+def _resolve_period_cutoff(period: str):
+    today = timezone.now().date()
+    mapping = {"7d": 7, "30d": 30, "90d": 90}
+    days = mapping.get(period)
+    return (today - timedelta(days=days)) if days else None
+
+
 class PlatformStatsView(APIView):
     """Admin: platform-wide statistics."""
     permission_classes = (IsAdminUser,)
 
     def get(self, request):
+        # All-time summary
         total_users = User.objects.count()
         premium_users = User.objects.filter(premium_status=True).count()
         total_events = Event.objects.count()
@@ -232,6 +242,40 @@ class PlatformStatsView(APIView):
         total_withdrawals_usd = Transaction.objects.filter(
             type="withdrawal", status="confirmed"
         ).aggregate(total=Sum("currency_equivalent"))["total"] or 0.0
+
+        # Period-scoped activity
+        period = request.query_params.get("period", "30d")
+        cutoff = _resolve_period_cutoff(period)
+
+        user_qs = User.objects.all()
+        pred_qs = Prediction.objects.all()
+        if cutoff:
+            user_qs = user_qs.filter(registration_date__gte=cutoff)
+            pred_qs = pred_qs.filter(created_at__date__gte=cutoff)
+
+        active_users_qs = User.objects.all()
+        if cutoff:
+            active_users_qs = active_users_qs.filter(last_login_date__gte=cutoff)
+
+        registrations_series = list(
+            user_qs.annotate(date=TruncDate("registration_date"))
+            .values("date").annotate(count=Count("id")).order_by("date")
+        )
+
+        predictions_series = list(
+            pred_qs.annotate(date=TruncDate("created_at"))
+            .values("date").annotate(count=Count("id")).order_by("date")
+        )
+
+        predictions_by_category = list(
+            pred_qs.values("event__category")
+            .annotate(count=Count("id")).order_by("-count")
+        )
+
+        pred_by_status = {
+            row["prediction_status"]: row["count"]
+            for row in pred_qs.values("prediction_status").annotate(count=Count("id"))
+        }
 
         return Response({
             "users": {
@@ -251,6 +295,29 @@ class PlatformStatsView(APIView):
                 "total_purchases_usd": round(float(total_revenue_usd), 2),
                 "total_withdrawals_usd": round(float(total_withdrawals_usd), 2),
                 "net_usd": round(float(total_revenue_usd) - float(total_withdrawals_usd), 2),
+            },
+            "period": period,
+            "activity": {
+                "active_users": active_users_qs.count(),
+                "registrations_series": [
+                    {"date": str(r["date"]), "count": r["count"]}
+                    for r in registrations_series
+                ],
+                "predictions_series": [
+                    {"date": str(r["date"]), "count": r["count"]}
+                    for r in predictions_series
+                ],
+                "predictions_by_category": [
+                    {"category": r["event__category"], "count": r["count"]}
+                    for r in predictions_by_category
+                ],
+                "predictions_by_status": {
+                    "active": pred_by_status.get("active", 0),
+                    "won": pred_by_status.get("won", 0),
+                    "lost": pred_by_status.get("lost", 0),
+                    "locked": pred_by_status.get("locked", 0),
+                    "cancelled": pred_by_status.get("cancelled", 0),
+                },
             },
         })
 

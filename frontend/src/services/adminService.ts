@@ -1,9 +1,10 @@
 import api from "../api/api";
-import { AdminUser, PaginatedResponse, PlatformStats, Event, CreateEventPayload, EventOutcome } from "../types";
+import { AdminUser, PaginatedResponse, PlatformStats, Event, CreateEventPayload, EventOutcome, PeriodKey } from "../types";
 
 export const adminService = {
   // Stats
-  getStats: () => api.get<PlatformStats>("/auth/admin/stats/"),
+  getStats: (period?: PeriodKey) =>
+    api.get<PlatformStats>("/auth/admin/stats/", { params: period ? { period } : undefined }),
 
   // Users
   getUsers: (page = 1) => api.get<PaginatedResponse<AdminUser>>("/auth/admin/users/", { params: { page } }),
