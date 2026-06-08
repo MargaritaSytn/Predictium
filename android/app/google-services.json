@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "302790406526-1hec7h6fv2ethuvi662h6h4g6pd3nsk9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.predictium.android",
+            "certificate_hash": "7f65d6f6ecb889927839ffb6bb365ae3980bcd3f"
+          }
+        },
+        {
           "client_id": "302790406526-4jr2ub1h3j3cv9cl83pk82fbvpmfsq8n.apps.googleusercontent.com",
           "client_type": 3
         }
