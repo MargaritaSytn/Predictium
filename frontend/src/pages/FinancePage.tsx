@@ -11,6 +11,8 @@ import {
   Star,
   Coins,
   CreditCard,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { paymentService } from "../services/paymentService";
@@ -27,6 +29,8 @@ const TYPE_LABELS: Record<string, string> = {
   withdrawal: "Вивід",
   premium: "Преміум",
 };
+
+type SortKey = "date" | "type" | "amount" | "status";
 
 const STATUS_LABELS: Record<string, string> = {
   confirmed: "Завершено",
@@ -49,10 +53,12 @@ function TypeIcon({ type }: { type: string }) {
 }
 
 export default function FinancePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [params, setParams] = useSearchParams();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const paidParam = params.get("paid");
   const [successOpen, setSuccessOpen] = useState(false);
@@ -98,7 +104,6 @@ export default function FinancePage() {
     setParams(next, { replace: true });
   };
 
-  if (authLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
   const balance = user.wallet_balance;
@@ -129,6 +134,49 @@ export default function FinancePage() {
       default: return "var(--text-secondary)";
     }
   };
+
+  const handleSort = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "date" || key === "amount" ? "desc" : "asc");
+    }
+  };
+
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    let cmp = 0;
+    switch (sortKey) {
+      case "date":
+        cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        break;
+      case "amount":
+        cmp = a.amount - b.amount;
+        break;
+      case "type":
+        cmp = (TYPE_LABELS[a.type] || a.type).localeCompare(TYPE_LABELS[b.type] || b.type, "uk");
+        break;
+      case "status":
+        cmp = (STATUS_LABELS[a.status] || a.status).localeCompare(STATUS_LABELS[b.status] || b.status, "uk");
+        break;
+    }
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+
+  const sortableHeader = (key: SortKey, label: string) => (
+    <th
+      className={`${styles.sortable} ${sortKey === key ? styles.sortableActive : ""}`}
+      onClick={() => handleSort(key)}
+    >
+      <span className={styles.thInner}>
+        {label}
+        <span className={styles.sortArrow}>
+          {sortKey === key &&
+            (sortDir === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+        </span>
+      </span>
+    </th>
+  );
 
   return (
     <div className={styles.page}>
@@ -251,15 +299,15 @@ export default function FinancePage() {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Дата</th>
-                  <th>Тип</th>
+                  {sortableHeader("date", "Дата")}
+                  {sortableHeader("type", "Тип")}
                   <th>Опис</th>
-                  <th>Сума</th>
-                  <th>Статус</th>
+                  {sortableHeader("amount", "Сума")}
+                  {sortableHeader("status", "Статус")}
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((tx) => {
+                {sortedTransactions.map((tx) => {
                   const isPositive = ["winning", "bonus", "purchase"].includes(tx.type);
                   const color = getTypeColor(tx.type);
                   return (
