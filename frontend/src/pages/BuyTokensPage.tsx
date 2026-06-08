@@ -10,12 +10,13 @@ const TOKEN_PRICE_USD = 0.10;
 const PRESETS = [500, 1200, 3000, 7000];
 
 export default function BuyTokensPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [amount, setAmount] = useState("");
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  if (authLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
   const tokenAmount = selectedPreset || parseInt(amount) || 0;

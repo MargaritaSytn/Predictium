@@ -48,7 +48,7 @@ function formatDateLabel(raw: string): string {
 }
 
 export default function AnalyticsPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [usersMeta, setUsersMeta] = useState<{ count: number; page: number }>({ count: 0, page: 1 });
@@ -77,6 +77,7 @@ export default function AnalyticsPage() {
 
   useEffect(() => { loadUsers(1); }, []);
 
+  if (authLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
   if (!user.is_staff) return <Navigate to="/" replace />;
 
