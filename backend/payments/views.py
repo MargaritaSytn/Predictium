@@ -1,3 +1,7 @@
+from urllib.parse import urlencode
+
+from django.http import HttpResponseRedirect
+from django.views import View
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -15,6 +19,27 @@ from .services import (
 )
 
 
+class PayPalReturnView(View):
+    """Redirect PayPal return URL back into the Android app via deep link."""
+
+    def get(self, request):
+        order_id = request.GET.get("token", "")
+        pay_type = request.GET.get("type", "purchase")
+        tokens = request.GET.get("tokens", "")
+        params = {"order_id": order_id, "type": pay_type}
+        if tokens:
+            params["tokens"] = tokens
+        deep_link = f"predictium://payment/success?{urlencode(params)}"
+        return HttpResponseRedirect(deep_link)
+
+
+class PayPalCancelView(View):
+    """Redirect PayPal cancel URL back into the Android app via deep link."""
+
+    def get(self, request):
+        return HttpResponseRedirect("predictium://payment/cancel")
+
+
 class PurchaseTokensView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -23,7 +48,9 @@ class PurchaseTokensView(APIView):
         serializer.is_valid(raise_exception=True)
         try:
             result = create_token_purchase(
-                request.user, serializer.validated_data["token_amount"]
+                request.user,
+                serializer.validated_data["token_amount"],
+                platform=serializer.validated_data.get("platform", "web"),
             )
             return Response(result, status=status.HTTP_201_CREATED)
         except PaymentError as e:
@@ -51,7 +78,8 @@ class PurchasePremiumView(APIView):
 
     def post(self, request):
         try:
-            result = create_premium_purchase(request.user)
+            platform = request.data.get("platform", "web")
+            result = create_premium_purchase(request.user, platform=platform)
             return Response(result, status=status.HTTP_201_CREATED)
         except PaymentError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)

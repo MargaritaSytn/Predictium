@@ -15,6 +15,7 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 class PurchaseTokensSerializer(serializers.Serializer):
     token_amount = serializers.IntegerField(min_value=10)
+    platform = serializers.ChoiceField(choices=["web", "android"], default="web")
 
 
 class ExecutePaymentSerializer(serializers.Serializer):

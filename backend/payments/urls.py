@@ -3,6 +3,7 @@ from .views import (
     PurchaseTokensView, ExecuteTokenPurchaseView,
     PurchasePremiumView, ExecutePremiumPurchaseView,
     WithdrawView, TransactionListView,
+    PayPalReturnView, PayPalCancelView,
 )
 
 urlpatterns = [
@@ -12,4 +13,6 @@ urlpatterns = [
     path("premium/execute/", ExecutePremiumPurchaseView.as_view(), name="execute-premium"),
     path("withdraw/", WithdrawView.as_view(), name="withdraw"),
     path("transactions/", TransactionListView.as_view(), name="transactions"),
+    path("paypal/return/", PayPalReturnView.as_view(), name="paypal-return"),
+    path("paypal/cancel/", PayPalCancelView.as_view(), name="paypal-cancel"),
 ]

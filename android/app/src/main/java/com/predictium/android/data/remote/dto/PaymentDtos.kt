@@ -5,22 +5,23 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class PurchaseRequest(
-    @Json(name = "token_amount") val tokenAmount: Int
+    @Json(name = "token_amount") val tokenAmount: Int,
+    @Json(name = "platform") val platform: String = "android",
 )
 
 @JsonClass(generateAdapter = true)
 data class PurchaseResponse(
     @Json(name = "approval_url") val approvalUrl: String? = null,
     @Json(name = "approval_link") val approvalLink: String? = null,
-    @Json(name = "payment_id") val paymentId: String? = null
+    @Json(name = "order_id") val orderId: String? = null,
 ) {
     fun getUrl(): String = approvalUrl ?: approvalLink ?: ""
+    fun requireOrderId(): String = orderId.orEmpty()
 }
 
 @JsonClass(generateAdapter = true)
 data class ExecutePurchaseRequest(
-    @Json(name = "payment_id") val paymentId: String,
-    @Json(name = "payer_id") val payerId: String
+    @Json(name = "order_id") val orderId: String
 )
 
 @JsonClass(generateAdapter = true)
