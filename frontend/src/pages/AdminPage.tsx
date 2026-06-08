@@ -2,11 +2,47 @@ import { useState, useEffect, useCallback } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { adminService } from "../services/adminService";
-import { Event, EventOutcome } from "../types";
+import { Event, EventOutcome, PlatformStats, PeriodKey, TimeSeriesPoint } from "../types";
 import { CATEGORIES, categoryLabel } from "../constants/categories";
+import BarChart from "../components/BarChart";
 import styles from "./AdminPage.module.css";
 
 const STATUSES = ["draft", "open", "closed", "resolving", "completed"];
+
+const PERIODS: { key: PeriodKey; label: string }[] = [
+  { key: "7d",  label: "7 днів"   },
+  { key: "30d", label: "30 днів"  },
+  { key: "90d", label: "90 днів"  },
+  { key: "all", label: "Весь час" },
+];
+
+const PERIOD_DAYS: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90 };
+
+const CATEGORY_LABELS: Record<string, string> = {
+  sports: "Спорт", politics: "Політика", technology: "Технології",
+  crypto: "Крипто", space: "Космос",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  active: "Активних", won: "Виграно", lost: "Програно",
+  locked: "Закрито", cancelled: "Скасовано",
+};
+
+function fillGaps(series: TimeSeriesPoint[], days: number): TimeSeriesPoint[] {
+  const today = new Date();
+  const map = new Map(series.map((p) => [p.date, p.count]));
+  return Array.from({ length: days }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (days - 1 - i));
+    const key = d.toISOString().slice(0, 10);
+    return { date: key, count: map.get(key) ?? 0 };
+  });
+}
+
+function formatDateLabel(raw: string): string {
+  const d = new Date(raw);
+  return `${d.getDate()}.${d.getMonth() + 1}`;
+}
 
 const emptyForm = {
   title: "",
@@ -30,6 +66,20 @@ export default function AdminPage() {
   const [formError, setFormError] = useState("");
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [outcomeInput, setOutcomeInput] = useState<Record<number, string>>({});
+
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [showStats, setShowStats] = useState(false);
+  const [period, setPeriod] = useState<PeriodKey>("30d");
+
+  useEffect(() => {
+    if (!showStats) return;
+    setStatsLoading(true);
+    adminService.getStats(period)
+      .then((res) => setStats(res.data))
+      .catch(console.error)
+      .finally(() => setStatsLoading(false));
+  }, [showStats, period]);
 
   const loadEvents = useCallback(() => {
     setLoading(true);
@@ -137,12 +187,125 @@ export default function AdminPage() {
           <p className={styles.subtitle}>Усього подій: {totalEvents}</p>
         </div>
         <div className={styles.headerActions}>
-          <Link to="/admin/analytics" className={styles.statsLink}>📊 Аналітика</Link>
+          <button
+            className={`${styles.statsLink} ${showStats ? styles.statsLinkActive : ""}`}
+            onClick={() => setShowStats((v) => !v)}
+          >
+            📊 {showStats ? "Сховати статистику" : "Показати статистику"}
+          </button>
+          <Link to="/admin/analytics" className={styles.statsLink}>Детальна аналітика</Link>
           <button className={styles.createBtn} onClick={() => { setShowForm(!showForm); setFormError(""); }}>
             {showForm ? "Скасувати" : "+ Нова подія"}
           </button>
         </div>
       </div>
+
+      {showStats && (
+        <div className={styles.statsPanel}>
+          {statsLoading ? (
+            <p className={styles.loading}>Завантаження статистики...</p>
+          ) : stats ? (
+            <>
+              <div className={styles.statsGrid}>
+                <div className={styles.statCard}>
+                  <p className={styles.statLabel}>Всього користувачів</p>
+                  <p className={styles.statValue}>{stats.users.total}</p>
+                  <p className={styles.statSub}>Premium: {stats.users.premium}</p>
+                </div>
+                <div className={styles.statCard}>
+                  <p className={styles.statLabel}>Відкритих подій</p>
+                  <p className={styles.statValue}>{stats.events.open}</p>
+                  <p className={styles.statSub}>Всього: {stats.events.total} · Завершено: {stats.events.completed}</p>
+                </div>
+                <div className={styles.statCard}>
+                  <p className={styles.statLabel}>Прогнозів</p>
+                  <p className={styles.statValue}>{stats.predictions.total.toLocaleString()}</p>
+                  <p className={styles.statSub}>{stats.predictions.total_tokens_wagered.toLocaleString()} токенів у ставках</p>
+                </div>
+                <div className={styles.statCard}>
+                  <p className={styles.statLabel}>Виручка (USD)</p>
+                  <p className={`${styles.statValue} ${styles.statValueGreen}`}>${stats.revenue.total_purchases_usd.toFixed(2)}</p>
+                  <p className={styles.statSub}>
+                    Нетто:{" "}
+                    <span className={stats.revenue.net_usd >= 0 ? styles.positive : styles.negative}>
+                      ${stats.revenue.net_usd.toFixed(2)}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.periodBar}>
+                {PERIODS.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    className={`${styles.periodBtn} ${period === key ? styles.periodBtnActive : ""}`}
+                    onClick={() => setPeriod(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className={styles.activeUsersCard}>
+                <div>
+                  <p className={styles.statLabel}>Активних користувачів</p>
+                  <p className={styles.statValue}>{stats.activity.active_users.toLocaleString()}</p>
+                </div>
+                <p className={styles.statSub}>
+                  Заходили за{" "}
+                  {period === "all" ? "весь час" : `останні ${period.replace("d", " днів")}`}
+                </p>
+              </div>
+
+              <div className={styles.chartsRow}>
+                <BarChart
+                  data={PERIOD_DAYS[period]
+                    ? fillGaps(stats.activity.registrations_series, PERIOD_DAYS[period])
+                    : stats.activity.registrations_series}
+                  labelKey="date"
+                  color="var(--accent)"
+                  title="Реєстрації"
+                  height={160}
+                  formatLabel={formatDateLabel}
+                />
+                <BarChart
+                  data={PERIOD_DAYS[period]
+                    ? fillGaps(stats.activity.predictions_series, PERIOD_DAYS[period])
+                    : stats.activity.predictions_series}
+                  labelKey="date"
+                  color="var(--success)"
+                  title="Прогнози"
+                  height={160}
+                  formatLabel={formatDateLabel}
+                />
+              </div>
+
+              {stats.activity.predictions_by_category.length > 0 && (
+                <BarChart
+                  data={stats.activity.predictions_by_category}
+                  labelKey="category"
+                  orientation="horizontal"
+                  title="Прогнози за категоріями"
+                  height={Math.max(100, stats.activity.predictions_by_category.length * 36 + 16)}
+                  formatLabel={(cat) => CATEGORY_LABELS[cat] ?? cat}
+                />
+              )}
+
+              <div className={styles.votingSection}>
+                <h3 className={styles.votingTitle}>Активність голосувань</h3>
+                <div className={styles.statusGrid}>
+                  {(Object.entries(stats.activity.predictions_by_status) as [string, number][]).map(([key, count]) => (
+                    <div key={key} className={styles.statusCard}>
+                      <p className={styles.statusLabel}>{STATUS_LABELS[key] ?? key}</p>
+                      <p className={styles.statusValue}>{count.toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : null}
+        </div>
+      )}
 
       {showForm && (
         <form className={styles.form} onSubmit={handleSubmit}>
