@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
@@ -20,33 +20,58 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import PaymentResultPage from "./pages/PaymentResultPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
+function AppRoutes() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span className="gradient-text" style={{ fontSize: "1.75rem", fontWeight: 700 }}>
+          Predictium
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/events" element={<EventListPage />} />
+        <Route path="/events/:id" element={<EventDetailPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/finance" element={<FinancePage />} />
+        <Route path="/buy-tokens" element={<BuyTokensPage />} />
+        <Route path="/withdraw" element={<WithdrawPage />} />
+        <Route path="/premium" element={<PremiumPage />} />
+        <Route path="/moderation" element={<ModerationPage />} />
+        <Route path="/users/:id" element={<UserProfilePage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin/analytics" element={<AnalyticsPage />} />
+        <Route path="/payment/success" element={<PaymentResultPage status="success" />} />
+        <Route path="/payment/cancel" element={<PaymentResultPage status="cancel" />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      </Routes>
+    </Layout>
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
         <BrowserRouter>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/events" element={<EventListPage />} />
-              <Route path="/events/:id" element={<EventDetailPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/finance" element={<FinancePage />} />
-              <Route path="/buy-tokens" element={<BuyTokensPage />} />
-              <Route path="/withdraw" element={<WithdrawPage />} />
-              <Route path="/premium" element={<PremiumPage />} />
-              <Route path="/moderation" element={<ModerationPage />} />
-              <Route path="/users/:id" element={<UserProfilePage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/admin/analytics" element={<AnalyticsPage />} />
-              <Route path="/payment/success" element={<PaymentResultPage status="success" />} />
-              <Route path="/payment/cancel" element={<PaymentResultPage status="cancel" />} />
-              <Route path="/privacy" element={<PrivacyPolicyPage />} />
-            </Routes>
-          </Layout>
+          <AppRoutes />
         </BrowserRouter>
       </AuthProvider>
     </ErrorBoundary>

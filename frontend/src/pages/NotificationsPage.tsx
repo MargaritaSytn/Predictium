@@ -14,7 +14,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function NotificationsPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [markingAll, setMarkingAll] = useState(false);
@@ -30,6 +30,7 @@ export default function NotificationsPage() {
     if (user) load();
   }, [user, load]);
 
+  if (authLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
   const handleMarkRead = (id: number) => {

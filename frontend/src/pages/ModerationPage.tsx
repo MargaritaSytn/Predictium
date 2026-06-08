@@ -7,7 +7,7 @@ import StarRating from "../components/StarRating";
 import styles from "./ModerationPage.module.css";
 
 export default function ModerationPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<number | null>(null);
@@ -19,6 +19,7 @@ export default function ModerationPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  if (authLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
   const handleApprove = async (reviewId: number) => {

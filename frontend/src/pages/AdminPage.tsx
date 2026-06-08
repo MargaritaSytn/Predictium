@@ -55,7 +55,7 @@ const emptyForm = {
 };
 
 export default function AdminPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [totalEvents, setTotalEvents] = useState(0);
   const [page, setPage] = useState(1);
@@ -94,6 +94,7 @@ export default function AdminPage() {
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
+  if (authLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
   if (!user.is_staff) return <Navigate to="/" replace />;
 

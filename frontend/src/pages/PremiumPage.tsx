@@ -25,10 +25,11 @@ function formatDate(iso: string) {
 }
 
 export default function PremiumPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  if (authLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
   const handlePurchase = async () => {

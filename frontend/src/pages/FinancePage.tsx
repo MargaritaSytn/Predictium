@@ -49,7 +49,7 @@ function TypeIcon({ type }: { type: string }) {
 }
 
 export default function FinancePage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [params, setParams] = useSearchParams();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,6 +98,7 @@ export default function FinancePage() {
     setParams(next, { replace: true });
   };
 
+  if (authLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
   const balance = user.wallet_balance;
