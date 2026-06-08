@@ -279,6 +279,31 @@
   border-bottom: 1px solid var(--border);
 }
 
+.table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--transition-fast);
+}
+
+.table th.sortable:hover {
+  color: var(--text-secondary);
+}
+
+.table th.sortableActive {
+  color: var(--text-primary);
+}
+
+.thInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sortArrow {
+  display: inline-flex;
+  width: 14px;
+}
+
 .table td {
   padding: var(--space-md);
   border-bottom: 1px solid var(--border);
