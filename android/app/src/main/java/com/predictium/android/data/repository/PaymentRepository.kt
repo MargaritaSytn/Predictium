@@ -25,8 +25,8 @@ class PaymentRepository @Inject constructor(
         paymentApi.executePremium(ExecutePurchaseRequest(orderId))
     }
 
-    suspend fun withdraw(tokenAmount: Int): Result<WithdrawResponse> = runCatching {
-        paymentApi.withdraw(WithdrawRequest(tokenAmount))
+    suspend fun withdraw(tokenAmount: Int, paypalEmail: String): Result<WithdrawResponse> = runCatching {
+        paymentApi.withdraw(WithdrawRequest(tokenAmount, paypalEmail))
     }
 
     suspend fun getTransactions(page: Int = 1, type: String? = null): Result<PaginatedResponse<Transaction>> = runCatching {
