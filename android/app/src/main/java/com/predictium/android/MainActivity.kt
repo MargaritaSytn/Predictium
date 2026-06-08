@@ -1,5 +1,6 @@
 package com.predictium.android
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,5 +20,11 @@ class MainActivity : ComponentActivity() {
                 PredictiumNavGraph()
             }
         }
+    }
+
+    // Called when the app is already running and receives a new intent (deep link)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
     }
 }

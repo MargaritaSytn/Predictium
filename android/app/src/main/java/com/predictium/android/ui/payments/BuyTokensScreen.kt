@@ -1,5 +1,6 @@
 package com.predictium.android.ui.payments
 
+import android.app.Activity
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 private val TOKEN_PACKAGES = listOf(500, 1200, 3000, 7000)
 private const val TOKEN_PRICE = 0.10
@@ -26,17 +30,37 @@ fun BuyTokensScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val approvalUrl by viewModel.approvalUrl.collectAsState()
+    val pendingOrderId by viewModel.pendingOrderId.collectAsState()
+    val purchaseSuccess by viewModel.purchaseSuccess.collectAsState()
     val context = LocalContext.current
-
+    val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(error) {
-        error?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearError()
+    // Handle deep link return: predictium://payment/success?order_id=...
+    LaunchedEffect(Unit) {
+        val intent = (context as? Activity)?.intent
+        val uri = intent?.data
+        if (uri?.scheme == "predictium" && uri.host == "payment") {
+            val orderId = uri.getQueryParameter("order_id")
+            if (!orderId.isNullOrBlank()) {
+                viewModel.capturePayment(orderId)
+                intent.data = null  // consume the deep link so it's not re-processed
+            }
         }
     }
 
+    // Lifecycle observer — auto-capture when app returns to foreground from Custom Tab
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && pendingOrderId != null) {
+                viewModel.capturePayment()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // Open PayPal in Chrome Custom Tab
     LaunchedEffect(approvalUrl) {
         approvalUrl?.let { url ->
             if (url.isNotBlank()) {
@@ -47,12 +71,28 @@ fun BuyTokensScreen(
         }
     }
 
+    // Show errors
+    LaunchedEffect(error) {
+        error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
+
+    // Show success
+    LaunchedEffect(purchaseSuccess) {
+        if (purchaseSuccess) {
+            snackbarHostState.showSnackbar("Токени успішно куплені!")
+            viewModel.clearSuccess()
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Buy Tokens") },
+                title = { Text("Купити токени") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -70,7 +110,7 @@ fun BuyTokensScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                "Select a token package",
+                "Оберіть пакет токенів",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -89,14 +129,14 @@ fun BuyTokensScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
-                            Text("$amount tokens", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                            Text("$amount токенів", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
                             Text("$${"%.2f".format(price)} USD", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Button(
                             onClick = { viewModel.purchaseTokens(amount) },
                             enabled = !isLoading
                         ) {
-                            Text("Buy")
+                            Text("Купити")
                         }
                     }
                 }
