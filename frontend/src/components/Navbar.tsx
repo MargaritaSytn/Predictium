@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
-import { Bell, Coins, Download } from "lucide-react";
+import { Bell, Coins, Download, Menu, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { notificationService } from "../services/notificationService";
 import styles from "./Navbar.module.css";
@@ -8,6 +8,7 @@ import styles from "./Navbar.module.css";
 export default function Navbar() {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -35,7 +36,10 @@ export default function Navbar() {
           <span className={`${styles.logoText} gradient-text`}>Predictium</span>
         </Link>
 
-        <div className={styles.navLinks}>
+        <div
+          className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ""}`}
+          onClick={() => setMenuOpen(false)}
+        >
           <NavLink to="/" end className={navLinkClass}>
             Головна
           </NavLink>
@@ -98,6 +102,15 @@ export default function Navbar() {
               </Link>
             </div>
           )}
+          <button
+            type="button"
+            className={styles.menuToggle}
+            aria-label="Меню"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
       </div>
     </nav>
