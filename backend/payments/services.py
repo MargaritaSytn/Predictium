@@ -38,14 +38,26 @@ def _capture_order(order_id):
     return paypal_request("POST", f"/v2/checkout/orders/{order_id}/capture")
 
 
-def create_token_purchase(user, token_amount):
+def _return_url(platform: str) -> str:
+    if platform == "android":
+        return settings.PAYPAL_MOBILE_RETURN_URL
+    return settings.PAYPAL_RETURN_URL
+
+
+def _cancel_url(platform: str) -> str:
+    if platform == "android":
+        return settings.PAYPAL_MOBILE_CANCEL_URL
+    return settings.PAYPAL_CANCEL_URL
+
+
+def create_token_purchase(user, token_amount, platform: str = "web"):
     usd_amount = round(token_amount * settings.TOKEN_PRICE_USD, 2)
     try:
         order = _create_order(
             usd_amount,
             f"Purchase {token_amount} Predictium tokens",
-            f"{settings.PAYPAL_RETURN_URL}?type=purchase&tokens={token_amount}",
-            settings.PAYPAL_CANCEL_URL,
+            f"{_return_url(platform)}?type=purchase&tokens={token_amount}",
+            _cancel_url(platform),
         )
     except PayPalAPIError as e:
         raise PaymentError(f"PayPal error: {e.body}")
@@ -87,7 +99,7 @@ def execute_token_purchase(user, order_id):
     return tx
 
 
-def create_premium_purchase(user):
+def create_premium_purchase(user, platform: str = "web"):
     if user.premium_status:
         raise PaymentError("Already a premium member.")
 
@@ -95,8 +107,8 @@ def create_premium_purchase(user):
         order = _create_order(
             float(settings.PREMIUM_PRICE_USD),
             "Predictium Premium Subscription (30 days)",
-            f"{settings.PAYPAL_RETURN_URL}?type=premium",
-            settings.PAYPAL_CANCEL_URL,
+            f"{_return_url(platform)}?type=premium",
+            _cancel_url(platform),
         )
     except PayPalAPIError as e:
         raise PaymentError(f"PayPal error: {e.body}")

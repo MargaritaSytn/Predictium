@@ -5,37 +5,40 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class PurchaseRequest(
-    @Json(name = "token_amount") val tokenAmount: Int
+    @Json(name = "token_amount") val tokenAmount: Int,
+    @Json(name = "platform") val platform: String = "android",
 )
 
 @JsonClass(generateAdapter = true)
 data class PurchaseResponse(
     @Json(name = "approval_url") val approvalUrl: String? = null,
     @Json(name = "approval_link") val approvalLink: String? = null,
-    @Json(name = "payment_id") val paymentId: String? = null
+    @Json(name = "order_id") val orderId: String? = null,
 ) {
     fun getUrl(): String = approvalUrl ?: approvalLink ?: ""
+    fun requireOrderId(): String = orderId.orEmpty()
 }
 
 @JsonClass(generateAdapter = true)
 data class ExecutePurchaseRequest(
-    @Json(name = "payment_id") val paymentId: String,
-    @Json(name = "payer_id") val payerId: String
+    @Json(name = "order_id") val orderId: String
 )
 
 @JsonClass(generateAdapter = true)
 data class WithdrawRequest(
-    @Json(name = "token_amount") val tokenAmount: Int
+    @Json(name = "token_amount") val tokenAmount: Int,
+    @Json(name = "paypal_email") val paypalEmail: String,
 )
 
 @JsonClass(generateAdapter = true)
 data class WithdrawResponse(
-    @Json(name = "withdrawal_id") val withdrawalId: Int? = null,
-    val status: String? = null,
-    @Json(name = "amount_tokens") val amountTokens: Int? = null,
-    val fee: Int? = null,
-    @Json(name = "net_usd") val netUsd: Double? = null,
-    val detail: String? = null
+    @Json(name = "transaction_id") val transactionId: Int? = null,
+    @Json(name = "tokens_withdrawn") val tokensWithdrawn: Int? = null,
+    @Json(name = "fee_tokens") val feeTokens: Int? = null,
+    @Json(name = "net_tokens") val netTokens: Int? = null,
+    @Json(name = "usd_amount") val usdAmount: Double? = null,
+    @Json(name = "batch_status") val batchStatus: String? = null,
+    val detail: String? = null,
 )
 
 @JsonClass(generateAdapter = true)

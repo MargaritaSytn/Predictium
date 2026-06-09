@@ -41,7 +41,7 @@ function statusLabel(status: string) {
 }
 
 export default function ProfilePage() {
-  const { user: authUser, logout, refreshUser } = useAuth();
+  const { user: authUser, loading: authLoading, logout, refreshUser } = useAuth();
   const [profile, setProfile] = useState<User | null>(null);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -64,6 +64,7 @@ export default function ProfilePage() {
       .finally(() => setLoading(false));
   }, [authUser]);
 
+  if (authLoading) return null;
   if (!authUser) return <Navigate to="/login" replace />;
   if (loading || !profile) {
     return (

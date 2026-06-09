@@ -11,7 +11,7 @@ const MIN_WITHDRAWAL = 100;
 const TOKEN_PRICE_USD = 0.10;
 
 export default function WithdrawPage() {
-  const { user, refreshUser } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [amount, setAmount] = useState("");
   const [paypalEmail, setPaypalEmail] = useState("");
@@ -20,6 +20,7 @@ export default function WithdrawPage() {
   const [successOpen, setSuccessOpen] = useState(false);
   const [successAmount, setSuccessAmount] = useState(0);
 
+  if (authLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
   const feeRate = user.premium_status ? 0 : 0.03;

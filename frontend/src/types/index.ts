@@ -167,11 +167,41 @@ export interface AdminUser {
   won_predictions: number;
 }
 
+export type PeriodKey = "7d" | "30d" | "90d" | "all";
+
+export interface TimeSeriesPoint {
+  date: string;
+  count: number;
+}
+
+export interface CategoryStat {
+  category: string;
+  count: number;
+}
+
+export interface PredictionsByStatus {
+  active: number;
+  won: number;
+  lost: number;
+  locked: number;
+  cancelled: number;
+}
+
+export interface PlatformActivity {
+  active_users: number;
+  registrations_series: TimeSeriesPoint[];
+  predictions_series: TimeSeriesPoint[];
+  predictions_by_category: CategoryStat[];
+  predictions_by_status: PredictionsByStatus;
+}
+
 export interface PlatformStats {
   users: { total: number; premium: number };
   events: { total: number; open: number; completed: number };
   predictions: { total: number; total_tokens_wagered: number };
   revenue: { total_purchases_usd: number; total_withdrawals_usd: number; net_usd: number };
+  period: PeriodKey;
+  activity: PlatformActivity;
 }
 
 export interface FeedPrediction {

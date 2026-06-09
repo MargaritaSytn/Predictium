@@ -71,7 +71,7 @@ ROOT_URLCONF = "predictium.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -229,6 +229,8 @@ PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
 PAYPAL_RETURN_URL = os.getenv("PAYPAL_RETURN_URL", "http://localhost:5173/payment/success")
 PAYPAL_CANCEL_URL = os.getenv("PAYPAL_CANCEL_URL", "http://localhost:5173/payment/cancel")
+PAYPAL_MOBILE_RETURN_URL = os.getenv("PAYPAL_MOBILE_RETURN_URL", "http://localhost:8000/api/payments/paypal/return/")
+PAYPAL_MOBILE_CANCEL_URL = os.getenv("PAYPAL_MOBILE_CANCEL_URL", "http://localhost:8000/api/payments/paypal/cancel/")
 
 # Token economy
 TOKEN_PRICE_USD = 0.10

@@ -10,6 +10,7 @@ import { useAuth } from "../context/AuthContext";
 import { Event, EventOutcome, Review, HintResponse } from "../types";
 import { AxiosError } from "axios";
 import StarRating from "../components/StarRating";
+import SuccessModal from "../components/SuccessModal";
 import { categoryColors, categoryLabel } from "../constants/categories";
 import styles from "./EventDetailPage.module.css";
 
@@ -57,7 +58,7 @@ function addToGoogleCalendar(title: string, deadline: string, description: strin
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOutcome, setSelectedOutcome] = useState<EventOutcome | null>(null);
@@ -76,6 +77,8 @@ export default function EventDetailPage() {
   const [hintsRemaining, setHintsRemaining] = useState<number | null>(null);
   const [dailyLimit, setDailyLimit] = useState<number | null>(null);
   const [lastPredictionOutcome, setLastPredictionOutcome] = useState<string | null>(null);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [successPayload, setSuccessPayload] = useState<{ amount: number; outcome: string; coefficient: number } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -108,12 +111,15 @@ export default function EventDetailPage() {
         amount_tokens: parseInt(amount),
       });
       setLastPredictionOutcome(selectedOutcome.label);
-      setMessage({
-        type: "success",
-        text: `Прогноз зроблено! ${amount} токенів на «${selectedOutcome.label}» з коефіцієнтом ${res.data.locked_coefficient}x`,
+      setSuccessPayload({
+        amount: parseInt(amount),
+        outcome: selectedOutcome.label,
+        coefficient: res.data.locked_coefficient,
       });
+      setSuccessOpen(true);
       setAmount("");
       setSelectedOutcome(null);
+      await refreshUser();
       if (id) {
         const updated = await eventService.getEvent(id);
         setEvent(updated.data);
@@ -182,6 +188,21 @@ export default function EventDetailPage() {
 
   return (
     <div className={styles.page}>
+      {successPayload && (
+        <SuccessModal
+          open={successOpen}
+          title="Прогноз зроблено!"
+          description={
+            <>
+              <strong>{successPayload.amount.toLocaleString()} токенів</strong> на «{successPayload.outcome}» з коефіцієнтом {successPayload.coefficient}x.
+            </>
+          }
+          subtext={
+            <>Потенційний виграш: <strong>{Math.round(successPayload.amount * successPayload.coefficient).toLocaleString()} токенів</strong></>
+          }
+          onClose={() => setSuccessOpen(false)}
+        />
+      )}
       <Link to="/" className={styles.backLink}>
         <ArrowLeft size={16} /> Назад до подій
       </Link>
