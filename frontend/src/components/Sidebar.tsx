@@ -54,7 +54,7 @@ export default function Sidebar({ activeCategory, onCategoryChange }: SidebarPro
       </div>
 
       {topPredictors.length > 0 && (
-        <div className={styles.section}>
+        <div className={`${styles.section} ${styles.leaderboard}`}>
           <h3 className={styles.sectionTitle}>
             <Trophy size={16} strokeWidth={2} className={styles.trophyIcon} />
             Топ Прогнозисти

@@ -10,6 +10,37 @@
   overflow-y: auto;
 }
 
+@media (max-width: 880px) {
+  .sidebar {
+    width: 100%;
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+    gap: var(--space-md);
+  }
+
+  .section {
+    padding: var(--space-md);
+  }
+
+  /* categories become a horizontal chip row instead of a tall list */
+  .categoryList {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .categoryItem {
+    width: auto;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* leaderboard takes too much vertical space above the feed on phones */
+  .leaderboard {
+    display: none;
+  }
+}
+
 .section {
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
   border: 1px solid var(--border);
