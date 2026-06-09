@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Send, MessageCircle, Code2, Mail } from "lucide-react";
+import { Send, MessageCircle, Mail } from "lucide-react";
 import styles from "./Footer.module.css";
 
 export default function Footer() {
@@ -12,21 +12,18 @@ export default function Footer() {
   ];
 
   const resourcesLinks = [
-    { label: "Документація", path: "#" },
-    { label: "API", path: "#" },
-    { label: "Підтримка", path: "#" },
+    { label: "Підтримка", path: "mailto:support@predictium.com" },
   ];
 
   const legalLinks = [
-    { label: "Умови користування", path: "#" },
-    { label: "Політика конфіденційності", path: "https://predictium-frontend.onrender.com/privacy" },
-    { label: "Правила прогнозів", path: "#" },
+    { label: "Умови користування", path: "/terms" },
+    { label: "Політика конфіденційності", path: "/privacy" },
+    { label: "Правила прогнозів", path: "/prediction-rules" },
   ];
 
   const socialLinks = [
-    { Icon: Send, label: "X / Twitter", href: "#" },
-    { Icon: MessageCircle, label: "Telegram", href: "#" },
-    { Icon: Code2, label: "GitHub", href: "#" },
+    { Icon: Send, label: "Telegram", href: "https://t.me/predictium" },
+    { Icon: MessageCircle, label: "Discord", href: "https://discord.gg/predictium" },
     { Icon: Mail, label: "Email", href: "mailto:support@predictium.com" },
   ];
 
@@ -62,9 +59,11 @@ export default function Footer() {
             <ul className={styles.linkList}>
               {resourcesLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.path} className={styles.link}>
-                    {link.label}
-                  </a>
+                  {link.path.startsWith("mailto") ? (
+                    <a href={link.path} className={styles.link}>{link.label}</a>
+                  ) : (
+                    <Link to={link.path} className={styles.link}>{link.label}</Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -75,9 +74,7 @@ export default function Footer() {
             <ul className={styles.linkList}>
               {legalLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.path} className={styles.link}>
-                    {link.label}
-                  </a>
+                  <Link to={link.path} className={styles.link}>{link.label}</Link>
                 </li>
               ))}
             </ul>

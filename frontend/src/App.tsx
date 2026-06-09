@@ -19,6 +19,8 @@ import AdminPage from "./pages/AdminPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import PaymentResultPage from "./pages/PaymentResultPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsPage from "./pages/TermsPage";
+import PredictionRulesPage from "./pages/PredictionRulesPage";
 
 function AppRoutes() {
   const { loading } = useAuth();
@@ -61,6 +63,8 @@ function AppRoutes() {
         <Route path="/payment/success" element={<PaymentResultPage status="success" />} />
         <Route path="/payment/cancel" element={<PaymentResultPage status="cancel" />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/prediction-rules" element={<PredictionRulesPage />} />
       </Routes>
     </Layout>
   );
