@@ -1,0 +1,352 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_stats %}
+
+{% block content %}
+{% get_platform_stats as s %}
+
+<style>
+  /* ── Django-style colour palette ──────────────────────────────────
+     Primary teal : #417690
+     Light teal   : #79aec8
+     Link         : #79aec8
+     Dark bg      : #1c2833
+     Card bg      : #20303d
+     Border       : #2d4354
+     Muted text   : #8faab8
+     Positive     : #79c3ad
+     Negative     : #c05050
+  ───────────────────────────────────────────────────────────────── */
+
+  .stats-dashboard {
+    margin-bottom: 24px;
+  }
+  .stats-dashboard h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #79aec8;
+    margin: 0 0 14px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #2d4354;
+    letter-spacing: 0.03em;
+  }
+
+  /* Summary cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .stat-card {
+    background: #20303d;
+    border: 1px solid #2d4354;
+    border-left: 3px solid #417690;
+    border-radius: 4px;
+    padding: 12px 14px;
+  }
+  .stat-label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #8faab8;
+    margin-bottom: 4px;
+  }
+  .stat-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #c8dde8;
+    line-height: 1.15;
+    margin-bottom: 3px;
+  }
+  .stat-value.green { color: #79c3ad; }
+  .stat-sub {
+    display: block;
+    font-size: 11px;
+    color: #6a8fa0;
+  }
+  .positive { color: #79c3ad; }
+  .negative { color: #c05050; }
+
+  /* Premium progress bar */
+  .bar-row {
+    background: #20303d;
+    border: 1px solid #2d4354;
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .bar-label {
+    font-size: 11px;
+    color: #8faab8;
+    margin-bottom: 7px;
+  }
+  .bar-track {
+    height: 7px;
+    background: #1c2833;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 5px;
+  }
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #417690, #79aec8);
+    border-radius: 99px;
+    min-width: 2px;
+  }
+  .bar-text {
+    font-size: 11px;
+    color: #6a8fa0;
+  }
+
+  /* Active users */
+  .active-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .active-card {
+    background: #1c2833;
+    border: 1px solid #417690;
+    border-radius: 4px;
+    padding: 12px 14px;
+  }
+
+  /* Category bars */
+  .categories-section {
+    background: #20303d;
+    border: 1px solid #2d4354;
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .categories-section h3,
+  .voting-section h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #8faab8;
+    margin: 0 0 10px 0;
+  }
+  .cat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 7px;
+    font-size: 12px;
+  }
+  .cat-name {
+    width: 90px;
+    color: #8faab8;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .cat-bar-track {
+    flex: 1;
+    height: 7px;
+    background: #1c2833;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .cat-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: #417690;
+  }
+  .cat-count {
+    width: 28px;
+    text-align: right;
+    color: #6a8fa0;
+    flex-shrink: 0;
+  }
+
+  /* All category bars use teal variants */
+  .cat-fill-sports     { background: #5ba08a; }
+  .cat-fill-politics   { background: #417690; }
+  .cat-fill-technology { background: #79aec8; }
+  .cat-fill-crypto     { background: #4a8fa0; }
+  .cat-fill-space      { background: #3a7070; }
+
+  /* Voting activity */
+  .voting-section {
+    background: #20303d;
+    border: 1px solid #2d4354;
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 24px;
+  }
+  .voting-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+  }
+  .voting-card {
+    background: #1c2833;
+    border: 1px solid #2d4354;
+    border-radius: 4px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .voting-card .stat-label { margin-bottom: 4px; }
+  .voting-card .stat-value { font-size: 20px; }
+
+  @media (max-width: 700px) {
+    .stats-grid  { grid-template-columns: 1fr 1fr; }
+    .active-row  { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div id="content-main">
+
+  <!-- ── Statistics dashboard ───────────────────────────────────── -->
+  <div class="stats-dashboard">
+    <h2>📊 Статистика платформи</h2>
+
+    <!-- Summary cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Всього користувачів</span>
+        <span class="stat-value">{{ s.total_users }}</span>
+        <span class="stat-sub">Premium: {{ s.premium_users }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Відкритих подій</span>
+        <span class="stat-value">{{ s.open_events }}</span>
+        <span class="stat-sub">Всього: {{ s.total_events }} · Завершено: {{ s.completed_events }} · Чернетки: {{ s.draft_events }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Прогнозів</span>
+        <span class="stat-value">{{ s.total_predictions }}</span>
+        <span class="stat-sub">{{ s.total_tokens }} токенів у ставках</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Виручка (USD)</span>
+        <span class="stat-value green">${{ s.total_revenue }}</span>
+        <span class="stat-sub">
+          Виведено: ${{ s.total_withdrawals }} ·
+          <span class="{% if s.net_revenue >= 0 %}positive{% else %}negative{% endif %}">
+            Нетто: ${{ s.net_revenue }}
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Premium bar -->
+    <div class="bar-row">
+      <div class="bar-label">Premium-користувачі</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width: {{ s.premium_bar_w }}%;"></div>
+      </div>
+      <div class="bar-text">{{ s.premium_users }} з {{ s.total_users }} ({{ s.premium_pct }}%)</div>
+    </div>
+
+    <!-- Active users -->
+    <div class="active-row">
+      <div class="active-card">
+        <span class="stat-label">Активних за тиждень</span>
+        <span class="stat-value">{{ s.active_users_week }}</span>
+        <span class="stat-sub">користувачів заходили за 7 днів</span>
+      </div>
+      <div class="active-card">
+        <span class="stat-label">Активних за місяць</span>
+        <span class="stat-value">{{ s.active_users_month }}</span>
+        <span class="stat-sub">нових реєстрацій: {{ s.new_users_month }} · прогнозів: {{ s.predictions_month }}</span>
+      </div>
+    </div>
+
+    <!-- Category distribution -->
+    {% if s.categories %}
+    <div class="categories-section">
+      <h3>Прогнози за категоріями</h3>
+      {% for cat in s.categories %}
+      <div class="cat-row">
+        <span class="cat-name">{{ cat.label }}</span>
+        <div class="cat-bar-track">
+          <div class="cat-bar-fill cat-fill-{{ cat.key }}"
+               style="width: {% widthratio cat.count s.max_cat 100 %}%;"></div>
+        </div>
+        <span class="cat-count">{{ cat.count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Voting activity by status -->
+    <div class="voting-section">
+      <h3>Активність голосувань</h3>
+      <div class="voting-grid">
+        <div class="voting-card">
+          <span class="stat-label">Активних</span>
+          <span class="stat-value">{{ s.pred_active }}</span>
+        </div>
+        <div class="voting-card">
+          <span class="stat-label">Виграно</span>
+          <span class="stat-value positive">{{ s.pred_won }}</span>
+        </div>
+        <div class="voting-card">
+          <span class="stat-label">Програно</span>
+          <span class="stat-value negative">{{ s.pred_lost }}</span>
+        </div>
+        <div class="voting-card">
+          <span class="stat-label">Закрито</span>
+          <span class="stat-value">{{ s.pred_locked }}</span>
+        </div>
+        <div class="voting-card">
+          <span class="stat-label">Скасовано</span>
+          <span class="stat-value">{{ s.pred_cancelled }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Standard Django admin app list ────────────────────────── -->
+  {% if app_list %}
+    {% for app in app_list %}
+      <div class="app-{{ app.app_label }} module{% if app.app_url in request.path|urlencode %} current-app{% endif %}">
+        <table>
+          <caption>
+            <a href="{{ app.app_url }}" class="section"
+               title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">
+              {{ app.name }}
+            </a>
+          </caption>
+          {% for model in app.models %}
+            <tr class="model-{{ model.object_name|lower }}{% if model.admin_url in request.path|urlencode %} current-model{% endif %}">
+              {% if model.admin_url %}
+                <th scope="row">
+                  <a href="{{ model.admin_url }}"{% if model.admin_url in request.path|urlencode %} aria-current="page"{% endif %}>
+                    {{ model.name }}
+                  </a>
+                </th>
+              {% else %}
+                <th scope="row">{{ model.name }}</th>
+              {% endif %}
+
+              {% if model.add_url %}
+                <td><a href="{{ model.add_url }}" class="addlink">{% translate 'Add' %}</a></td>
+              {% else %}
+                <td></td>
+              {% endif %}
+
+              {% if model.admin_url and show_changelinks %}
+                {% if model.view_only %}
+                  <td><a href="{{ model.admin_url }}" class="viewlink">{% translate 'View' %}</a></td>
+                {% else %}
+                  <td><a href="{{ model.admin_url }}" class="changelink">{% translate 'Change' %}</a></td>
+                {% endif %}
+              {% elif model.admin_url %}
+                <td></td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>{% blocktranslate %}You don't have permission to view or edit anything.{% endblocktranslate %}</p>
+  {% endif %}
+
+</div>
+{% endblock %}
