@@ -1,0 +1,13 @@
+# Exclude from language stats
+android/build/** linguist-generated=true
+android/app/release/** linguist-generated=true
+frontend/dist/** linguist-generated=true
+frontend/build/** linguist-generated=true
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true
+
+# Explicitly mark languages
+*.py linguist-language=Python
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.kt linguist-language=Kotlin
