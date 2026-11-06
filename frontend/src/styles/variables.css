@@ -1,0 +1,105 @@
+:root {
+  /* Background colors */
+  --bg-primary: #0F0F0F;
+  --bg-card: #1A1A1A;
+  --bg-elevated: #242424;
+  --bg-input: rgba(255, 255, 255, 0.04);
+  --bg-hover: rgba(255, 255, 255, 0.06);
+
+  /* Border colors */
+  --border: rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.10);
+  --border-light: rgba(255, 255, 255, 0.10);
+
+  /* Accent — gradient brand (blue → purple) */
+  --accent-from: #3b82f6;
+  --accent-to: #a855f7;
+  --accent: #8b5cf6;
+  --accent-hover: #7c3aed;
+  --accent-light: rgba(139, 92, 246, 0.15);
+  --gradient-brand: linear-gradient(135deg, #3b82f6 0%, #a855f7 100%);
+  --gradient-brand-horizontal: linear-gradient(to right, #3b82f6, #a855f7);
+
+  /* Semantic colors */
+  --success: #34d399;
+  --success-light: rgba(52, 211, 153, 0.15);
+  --danger: #f87171;
+  --danger-light: rgba(248, 113, 113, 0.15);
+  --warning: #facc15;
+  --warning-light: rgba(250, 204, 21, 0.15);
+  --info: #60a5fa;
+  --info-light: rgba(96, 165, 250, 0.15);
+
+  /* Category colors (як у дизайн-репо Home.tsx getCategoryColor) */
+  --cat-sports: #34d399;
+  --cat-sports-bg: rgba(52, 211, 153, 0.20);
+  --cat-sports-border: rgba(52, 211, 153, 0.30);
+  --cat-politics: #60a5fa;
+  --cat-politics-bg: rgba(96, 165, 250, 0.20);
+  --cat-politics-border: rgba(96, 165, 250, 0.30);
+  --cat-tech: #c084fc;
+  --cat-tech-bg: rgba(192, 132, 252, 0.20);
+  --cat-tech-border: rgba(192, 132, 252, 0.30);
+  --cat-crypto: #facc15;
+  --cat-crypto-bg: rgba(250, 204, 21, 0.20);
+  --cat-crypto-border: rgba(250, 204, 21, 0.30);
+  --cat-space: #f472b6;
+  --cat-space-bg: rgba(244, 114, 182, 0.20);
+  --cat-space-border: rgba(244, 114, 182, 0.30);
+
+  /* Text colors */
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --text-dim: #4b5563;
+
+  /* Green accent (for balance, bonuses) */
+  --green-accent: #34d399;
+  --green-bg: rgba(52, 211, 153, 0.12);
+
+  /* Spacing scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.5rem;
+  --space-2xl: 2rem;
+  --space-3xl: 3rem;
+
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.85rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.15rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.5rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 40px rgba(168, 85, 247, 0.15);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+
+  /* Layout */
+  --navbar-height: 70px;
+  --sidebar-width: 280px;
+  --max-content-width: 1280px;
+}

@@ -1,0 +1,297 @@
+.navbar {
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-xl);
+  height: var(--navbar-height);
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.logoIcon {
+  width: 32px;
+  height: 32px;
+  background: var(--gradient-brand);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+}
+
+.logoText {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.navLink {
+  position: relative;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  padding-bottom: 6px;
+  transition: color var(--transition-fast);
+}
+
+.navLink:hover {
+  color: var(--text-secondary);
+}
+
+.navLinkActive {
+  color: var(--text-primary);
+}
+
+.navLinkActive::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -22px;
+  height: 2px;
+  background: var(--gradient-brand-horizontal);
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.balanceBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 6px var(--space-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.balanceBadge:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+}
+
+.balanceIcon {
+  width: 28px;
+  height: 28px;
+  background: var(--green-bg);
+  color: var(--green-accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.balanceInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.balanceLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.balanceAmount {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.authLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.loginLink {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: color var(--transition-fast);
+}
+
+.loginLink:hover {
+  color: var(--text-primary);
+}
+
+.registerBtn {
+  padding: var(--space-sm) var(--space-xl);
+  background: var(--gradient-brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  transition: filter var(--transition-fast);
+}
+
+.registerBtn:hover {
+  filter: brightness(1.1);
+}
+
+.notifBell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+
+.notifBell:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.unreadBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  background: var(--danger);
+  color: #fff;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.menuToggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .inner {
+    padding: 0 var(--space-md);
+    gap: var(--space-sm);
+  }
+
+  /* show only the "P" icon, hide the wordmark on phones */
+  .logoText {
+    display: none;
+  }
+
+  .menuToggle {
+    display: flex;
+  }
+
+  /* center links become a dropdown panel below the bar */
+  .navLinks {
+    position: absolute;
+    top: var(--navbar-height);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border);
+    padding: var(--space-sm) var(--space-md);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height var(--transition-fast), opacity var(--transition-fast);
+  }
+
+  .navLinksOpen {
+    max-height: 70vh;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .navLink {
+    padding: var(--space-md) var(--space-xs);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .navLink:last-child {
+    border-bottom: none;
+  }
+
+  /* the desktop underline indicator doesn't fit the stacked menu */
+  .navLinkActive::after {
+    display: none;
+  }
+
+  .authLinks {
+    gap: var(--space-md);
+  }
+
+  .registerBtn {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  /* keep the balance pill compact so the row never overflows */
+  .balanceLabel {
+    display: none;
+  }
+
+  .balanceBadge {
+    padding: 6px var(--space-sm);
+  }
+}
+
+@media (max-width: 380px) {
+  .balanceAmount {
+    max-width: 90px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
